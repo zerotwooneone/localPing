@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2043
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "console", "console\console.csproj", "{C2CF8CC6-B751-463D-B770-5B9DF9F67FC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "console", "console\console.csproj", "{C2CF8CC6-B751-463D-B770-5B9DF9F67FC5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zh.LocalPing", "zh.LocalPing\zh.LocalPing.csproj", "{8821E329-4946-438A-8C0B-1696E50207F3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{C2CF8CC6-B751-463D-B770-5B9DF9F67FC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2CF8CC6-B751-463D-B770-5B9DF9F67FC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2CF8CC6-B751-463D-B770-5B9DF9F67FC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8821E329-4946-438A-8C0B-1696E50207F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8821E329-4946-438A-8C0B-1696E50207F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8821E329-4946-438A-8C0B-1696E50207F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8821E329-4946-438A-8C0B-1696E50207F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

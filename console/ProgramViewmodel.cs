@@ -3,16 +3,21 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Reactive.Subjects;
+using System.Threading;
 using System.Threading.Tasks;
+using zh.LocalPing;
 
 namespace console
 {
     public class ProgramViewmodel
     {
+        private readonly IPingService _pingService;
         private readonly ISubject<string> _messageSubject;
         public IObservable<string> MessageObservable => _messageSubject;
-        public ProgramViewmodel()
+
+        public ProgramViewmodel(IPingService pingService)
         {
+            _pingService = pingService;
             _messageSubject = new Subject<string>();
         }
         public void Configure()
@@ -20,19 +25,20 @@ namespace console
             //nothing at the moment
         }
 
-        public async Task Start()
+        public async Task Start(CancellationToken cancellationToken)
         {
-            var pings = Enumerable.Range(1, 255).Select(GetTask);
-            var logs = pings.Select(t => t.ContinueWith(t1 => Log(t1.Result)));
+            var ipAddresses = Enumerable.Range(1, 255).Select(n => GetAddress(n));
+            var pings = _pingService.Ping(ipAddresses);
+            var logs = pings.Select(t => t.ContinueWith(t1 => Log(t1.Result), cancellationToken));
             await Task.WhenAll(logs);
         }
 
-        private void Log(PingCompletedEventArgs pingCompletedEventArgs)
+        private void Log(IPingResponse pingResponse)
         {
-            Log(pingCompletedEventArgs.Reply.Address, pingCompletedEventArgs.Reply.RoundtripTime, pingCompletedEventArgs.Reply.Status);
+            Log(pingResponse.IpAddress, pingResponse.RoundTripTime.TotalMilliseconds, pingResponse.Status);
         }
 
-        private void Log(IPAddress address, long replyRoundtripTime, IPStatus replyStatus)
+        private void Log(IPAddress address, double replyRoundtripTime, IPStatus replyStatus)
         {
             Log($"{DateTime.Now.ToShortTimeString()} Address:{address} RTT:{replyRoundtripTime} Status:{replyStatus}");
         }
@@ -40,23 +46,6 @@ namespace console
         private void Log(string message)
         {
             _messageSubject.OnNext(message);
-        }
-
-        private Task<PingCompletedEventArgs> GetTask(int index)
-        {
-            var ipadrress = GetAddress(index);
-            var ping = new Ping();
-            var taskCompletionSource = new TaskCompletionSource<PingCompletedEventArgs>();
-
-            void OnPingOnPingCompleted(object s, PingCompletedEventArgs e)
-            {
-                taskCompletionSource.SetResult(e);
-            }
-
-            ping.PingCompleted += OnPingOnPingCompleted;
-            const int timeoutInMilliseconds = 1000;
-            ping.SendAsync(ipadrress, timeoutInMilliseconds);
-            return taskCompletionSource.Task;
         }
 
         private IPAddress GetAddress(int index)
