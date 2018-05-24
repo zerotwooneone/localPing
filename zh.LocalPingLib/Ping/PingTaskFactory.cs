@@ -2,7 +2,7 @@
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 
-namespace zh.LocalPing
+namespace zh.LocalPingLib.Ping
 {
     public class PingTaskFactory : IPingTaskFactory
     {
@@ -15,7 +15,7 @@ namespace zh.LocalPing
 
         public async Task<IPingResponse> Ping(IPAddress ipadrress)
         {
-            var ping = new Ping();
+            var ping = new System.Net.NetworkInformation.Ping();
             var taskCompletionSource = new TaskCompletionSource<PingCompletedEventArgs>();
 
             void OnPingOnPingCompleted(object s, PingCompletedEventArgs e)
@@ -27,7 +27,7 @@ namespace zh.LocalPing
             const int timeoutInMilliseconds = 1000;
             ping.SendAsync(ipadrress, timeoutInMilliseconds);
 
-            var responsEventArgs = await taskCompletionSource.Task;
+            var responsEventArgs = await taskCompletionSource.Task.ConfigureAwait(false);
             var result = _pingResponseUtil.Convert(responsEventArgs);
             return result;
         }

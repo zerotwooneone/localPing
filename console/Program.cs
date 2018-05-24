@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
-using zh.LocalPing;
+using zh.LocalPingLib.Ping;
 
 namespace console
 {

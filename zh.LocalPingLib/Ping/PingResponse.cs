@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.NetworkInformation;
 
-namespace zh.LocalPing
+namespace zh.LocalPingLib.Ping
 {
     public class PingResponse : IPingResponse
     {

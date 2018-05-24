@@ -5,7 +5,7 @@ using System.Net.NetworkInformation;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
-using zh.LocalPing;
+using zh.LocalPingLib.Ping;
 
 namespace console
 {
@@ -48,9 +48,6 @@ namespace console
             _messageSubject.OnNext(message);
         }
 
-        private IPAddress GetAddress(int index)
-        {
-            return IPAddress.Parse($"192.168.1.{index}");
-        }
+        
     }
 }

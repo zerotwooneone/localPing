@@ -3,7 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace zh.LocalPing
+namespace zh.LocalPingLib.Ping
 {
     public class PingService : IPingService
     {

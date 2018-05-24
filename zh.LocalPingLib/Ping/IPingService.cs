@@ -2,7 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 
-namespace zh.LocalPing
+namespace zh.LocalPingLib.Ping
 {
     public interface IPingService
     {
