@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.NetworkInformation;
 
 namespace zh.LocalPingLib.Ping
@@ -7,7 +8,8 @@ namespace zh.LocalPingLib.Ping
     {
         public IPingResponse Convert(PingCompletedEventArgs pingCompletedEventArgs)
         {
-            return new PingResponse(pingCompletedEventArgs.Reply.Address, TimeSpan.FromMilliseconds(pingCompletedEventArgs.Reply.RoundtripTime), pingCompletedEventArgs.Reply.Status);
+            var targetIpAddress = (IPAddress) pingCompletedEventArgs.UserState;
+            return new PingResponse(pingCompletedEventArgs.Reply.Address, TimeSpan.FromMilliseconds(pingCompletedEventArgs.Reply.RoundtripTime), pingCompletedEventArgs.Reply.Status, targetIpAddress);
         }
     }
 }

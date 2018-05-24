@@ -66,6 +66,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Ping\IPingCollectionVectorFactory.cs" />
+    <Compile Include="Ping\IPingVectorFactory.cs" />
+    <Compile Include="Ping\PingCollectionVectorFactory.cs" />
+    <Compile Include="Ping\PingVectorFactory.cs" />
+    <Compile Include="Vector\IVectorComparer.cs" />
+    <Compile Include="Vector\VectorModule.cs" />
+    <Compile Include="Vector\Vector.cs" />
+    <Compile Include="Vector\VectorComparer.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -74,6 +82,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Vector\DimensionKey.cs" />
+    <Compile Include="Vector\DimensionValue.cs" />
+    <Compile Include="Vector\IDimensionKey.cs" />
+    <Compile Include="Vector\IDimensionValue.cs" />
+    <Compile Include="Vector\IVector.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

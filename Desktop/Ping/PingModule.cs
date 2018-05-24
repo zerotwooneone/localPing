@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Ninject.Modules;
+﻿using Ninject.Modules;
 
 namespace Desktop.Ping
 {
@@ -13,6 +8,7 @@ namespace Desktop.Ping
         {
             Bind<IPingTimer>().To<PingTimer>();
             Bind<IPingTimerConfig>().To<Config>();
+            Bind<IPingCollectionVectorFactory>().To<PingCollectionVectorFactory>();
         }
     }
 }

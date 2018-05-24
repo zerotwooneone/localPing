@@ -6,7 +6,8 @@ namespace zh.LocalPingLib.Ping
 {
     public interface IPingResponse
     {
-        IPAddress IpAddress { get; }
+        IPAddress TargetIpAddress { get; }
+        IPAddress ReponseIpAddress { get; }
         TimeSpan RoundTripTime { get; }
         IPStatus Status { get; }
     }

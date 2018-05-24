@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using Desktop.Ping;
 using Ninject;
 
@@ -23,6 +17,7 @@ namespace Desktop
             _iocKernel = new StandardKernel();
             _iocKernel.Load(new PingModule());
             _iocKernel.Load(new PingLibModule());
+            _iocKernel.Load(new VectorModule());
 
             Current.MainWindow = _iocKernel.Get<MainWindow>();
             Current.MainWindow.Show();

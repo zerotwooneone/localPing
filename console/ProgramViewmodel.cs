@@ -27,7 +27,7 @@ namespace console
 
         public async Task Start(CancellationToken cancellationToken)
         {
-            var ipAddresses = Enumerable.Range(1, 255).Select(n => GetAddress(n));
+            var ipAddresses = Enumerable.Range(1, 255).Select(GetAddress);
             var pings = _pingService.Ping(ipAddresses);
             var logs = pings.Select(t => t.ContinueWith(t1 => Log(t1.Result), cancellationToken));
             await Task.WhenAll(logs);
@@ -35,7 +35,7 @@ namespace console
 
         private void Log(IPingResponse pingResponse)
         {
-            Log(pingResponse.IpAddress, pingResponse.RoundTripTime.TotalMilliseconds, pingResponse.Status);
+            Log(pingResponse.ReponseIpAddress, pingResponse.RoundTripTime.TotalMilliseconds, pingResponse.Status);
         }
 
         private void Log(IPAddress address, double replyRoundtripTime, IPStatus replyStatus)
@@ -48,6 +48,9 @@ namespace console
             _messageSubject.OnNext(message);
         }
 
-        
+        private IPAddress GetAddress(int index)
+        {
+            return IPAddress.Parse($"192.168.1.{index}");
+        }
     }
 }

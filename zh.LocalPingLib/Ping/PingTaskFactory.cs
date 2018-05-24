@@ -25,7 +25,7 @@ namespace zh.LocalPingLib.Ping
 
             ping.PingCompleted += OnPingOnPingCompleted;
             const int timeoutInMilliseconds = 1000;
-            ping.SendAsync(ipadrress, timeoutInMilliseconds);
+            ping.SendAsync(ipadrress, timeoutInMilliseconds, ipadrress);
 
             var responsEventArgs = await taskCompletionSource.Task.ConfigureAwait(false);
             var result = _pingResponseUtil.Convert(responsEventArgs);
