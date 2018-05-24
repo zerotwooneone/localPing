@@ -9,6 +9,7 @@ namespace Desktop.Ping
             Bind<IPingTimer>().To<PingTimer>();
             Bind<IPingTimerConfig>().To<Config>();
             Bind<IPingCollectionVectorFactory>().To<PingCollectionVectorFactory>();
+            Bind<IDimensionKeyFactory>().To<DimensionKeyFactory>();
         }
     }
 }

@@ -66,9 +66,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Ping\DimensionKeyFactory.cs" />
+    <Compile Include="Ping\IDimensionKeyFactory.cs" />
     <Compile Include="Ping\IPingCollectionVectorFactory.cs" />
     <Compile Include="Ping\IPingVectorFactory.cs" />
-    <Compile Include="Ping\PerIpDimensionKeyFactory.cs" />
     <Compile Include="Ping\PerResponseDimensionValueFactory.cs" />
     <Compile Include="Ping\PingCollectionVectorFactory.cs" />
     <Compile Include="Ping\PingVectorFactory.cs" />

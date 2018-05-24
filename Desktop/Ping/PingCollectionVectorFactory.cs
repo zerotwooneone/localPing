@@ -9,13 +9,12 @@ namespace Desktop.Ping
     {
         private readonly PerResponseDimensionValueFactory _ipStatusDimension;
 
-        public PingCollectionVectorFactory()
+        public PingCollectionVectorFactory(IDimensionKeyFactory dimensionKeyFactory)
         {
-            var perIpDimensionKeyFactory = new PerIpDimensionKeyFactory();
-
+            
             IDimensionKey DimensionKeyFactory(IPingResponse pr)
             {
-                return perIpDimensionKeyFactory.GetDimensionKey(() => $"{pr.TargetIpAddress} status", pr.TargetIpAddress);
+                return dimensionKeyFactory.GetOrCreate($"{pr.TargetIpAddress} success flag");
             }
 
             double DimensionValueFactory(IPingResponse pr)
