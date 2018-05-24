@@ -28,7 +28,14 @@ namespace Desktop.Vector
 
             var frac = dotProduct / lengthProduct;
 
+            const double fracTollerance = 0.00001;
+            if (Math.Abs(frac - 1) < fracTollerance)
+            {
+                frac = 1;
+            }
+
             var arcCos = Math.Acos(frac);
+
             return arcCos;
         }
     }
