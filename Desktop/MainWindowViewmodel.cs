@@ -29,7 +29,7 @@ namespace Desktop
             _pingCollectionVectorFactory = pingCollectionVectorFactory;
             _vectorComparer = vectorComparer;
             IObservable<long> o = _pingTimer.Start(() => false);
-            var ipAddresses = Enumerable.Range(1, 255).Select(n => GetAddress(n)); //new[] {IPAddress.Parse("192.168.1.146")};
+            var ipAddresses = Enumerable.Range(1, 255).Select(n => GetAddress(n)); //new[] { IPAddress.Parse("192.168.1.146") }; 
             IObservable<IEnumerable<Task<IPingResponse>>> x = o.Select(l => _pingService.Ping(ipAddresses));
             x.Subscribe(async a =>
             {
