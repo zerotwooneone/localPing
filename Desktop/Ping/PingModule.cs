@@ -1,4 +1,7 @@
-﻿using Ninject.Modules;
+﻿using System.Collections.Generic;
+using Desktop.Vector;
+using Ninject.Modules;
+using zh.LocalPingLib.Ping;
 
 namespace Desktop.Ping
 {
@@ -10,6 +13,10 @@ namespace Desktop.Ping
             Bind<IPingTimerConfig>().To<Config>();
             Bind<IPingCollectionVectorFactory>().To<PingCollectionVectorFactory>();
             Bind<IDimensionKeyFactory>().To<DimensionKeyFactory>();
+            Bind<IVectorInputConversionService<IPingResponse>>().To<VectorInputConversionService<IPingResponse>>();
+            Bind<IVectorInputConversionService<IEnumerable<IPingResponse>>>()
+                .To<VectorInputConversionService<IEnumerable<IPingResponse>>>();
+            Bind<IIpAddressService>().To<IpAddressService>();
         }
     }
 }

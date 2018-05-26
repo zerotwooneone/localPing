@@ -22,31 +22,41 @@ namespace Desktop
         public MainWindowViewmodel(IPingTimer pingTimer, 
             IPingService pingService, 
             IPingCollectionVectorFactory pingCollectionVectorFactory,
-            IVectorComparer vectorComparer)
+            IVectorComparer vectorComparer,
+            IIpAddressService ipAddressService)
         {
             _pingTimer = pingTimer;
             _pingService = pingService;
             _pingCollectionVectorFactory = pingCollectionVectorFactory;
             _vectorComparer = vectorComparer;
-            IObservable<long> o = _pingTimer.Start(() => false);
-            var ipAddresses = Enumerable.Range(1, 255).Select(n => GetAddress(n)); //new[] { IPAddress.Parse("192.168.1.146") }; 
-            IObservable<IEnumerable<Task<IPingResponse>>> x = o.Select(l => _pingService.Ping(ipAddresses));
-            x.Subscribe(async a =>
+            IObservable<long> pingTimerObservable = _pingTimer.Start(() => false);
+            IDisposable pingResponseSubscription = null;
+
+            ipAddressService.IpAddressObservable.Subscribe(ipAddresses =>
             {
-                var tasks= a.Select(async y =>
+                pingResponseSubscription?.Dispose();
+                IObservable<IEnumerable<Task<IPingResponse>>> pingResponseObservable =
+                    pingTimerObservable.Select(l => _pingService.Ping(ipAddresses));
+                pingResponseSubscription = pingResponseObservable.Subscribe(async pingResponseTasks =>
                 {
-                    var z = await y;
-                    //Log($"address:{z.ReponseIpAddress} RTT:{z.RoundTripTime.TotalMilliseconds} status:{z.Status}");
-                    return z;
+                    var tasks = pingResponseTasks.Select(async pingResponseTask =>
+                    {
+                        var pingResponse = await pingResponseTask;
+                        //Log($"address:{pingResponse.ReponseIpAddress} RTT:{pingResponse.RoundTripTime.TotalMilliseconds} status:{pingResponse.Status}");
+                        return pingResponse;
+                    });
+                    var responses = await Task.WhenAll(tasks);
+                    var currentVector = await _pingCollectionVectorFactory.GeVector(responses);
+                    if (_previousVector != null)
+                    {
+                        Log($"diff:{_vectorComparer.Compare(_previousVector, currentVector)}");
+                    }
+
+                    _previousVector = currentVector;
                 });
-                var responses = await Task.WhenAll(tasks);
-                var currentVector = _pingCollectionVectorFactory.GeVector(responses);
-                if (_previousVector != null)
-                {
-                    Log($"diff:{_vectorComparer.Compare(_previousVector, currentVector)}");
-                }
-                _previousVector = currentVector;
             });
+
+
         }
 
         private void Log(string message)
@@ -54,9 +64,6 @@ namespace Desktop
             Debug.WriteLine(message);
         }
 
-        private IPAddress GetAddress(int index)
-        {
-            return IPAddress.Parse($"192.168.1.{index}");
-        }
+        
     }
 }
