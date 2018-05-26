@@ -37,7 +37,7 @@ namespace Desktop.Ping
                     {dimensionKeyFactory.GetOrCreate($"{ip} status flag"), DimensionValueFactory}
                 });
             });
-            
+
         }
 
         public async Task<IVector> GeVector(IEnumerable<IPingResponse> pingResponses)
@@ -45,16 +45,7 @@ namespace Desktop.Ping
             var x = pingResponses.Select(async response =>
             {
                 IReadOnlyDictionary<IDimensionKey, Func<IPingResponse, Task<double>>> dimensions;
-                try
-                {
-                    
-                    dimensions = _ipSpecificDimensions[response.TargetIpAddress];
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
+                dimensions = _ipSpecificDimensions[response.TargetIpAddress];
                 var vectorTask = _vectorInputConversionService.GetVector(response, dimensions);
 
                 var vector = await vectorTask;
@@ -62,7 +53,7 @@ namespace Desktop.Ping
                 return dimensionValues;
             });
             var y = await Task.WhenAll(x);
-            var z = y.SelectMany(i=>i);
+            var z = y.SelectMany(i => i);
             return new Vector.Vector(z);
         }
     }
