@@ -42,19 +42,18 @@ namespace Desktop.Ping
 
         public async Task<IVector> GeVector(IEnumerable<IPingResponse> pingResponses)
         {
-            var x = pingResponses.Select(async response =>
+            var dimensionValueTasks = pingResponses.Select(async response =>
             {
-                IReadOnlyDictionary<IDimensionKey, Func<IPingResponse, Task<double>>> dimensions;
-                dimensions = _ipSpecificDimensions[response.TargetIpAddress];
+                var dimensions = _ipSpecificDimensions[response.TargetIpAddress];
                 var vectorTask = _vectorInputConversionService.GetVector(response, dimensions);
 
                 var vector = await vectorTask;
-                var dimensionValues = vector.DimensionValues;
-                return dimensionValues;
+                var vectorValues = vector.DimensionValues;
+                return vectorValues;
             });
-            var y = await Task.WhenAll(x);
-            var z = y.SelectMany(i => i);
-            return new Vector.Vector(z);
+            var dimensionValueLists = await Task.WhenAll(dimensionValueTasks);
+            var dimensionValues = dimensionValueLists.SelectMany(i => i);
+            return new Vector.Vector(dimensionValues);
         }
     }
 }
