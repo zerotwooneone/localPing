@@ -15,7 +15,8 @@ namespace Desktop.Ping
         private IReadOnlyDictionary<IPAddress, IReadOnlyDictionary<IDimensionKey, Func<IPingResponse, Task<double>>>> _ipSpecificDimensions;
 
         public PingCollectionVectorFactory(IVectorInputConversionService<IPingResponse> vectorInputConversionService,
-            IIpAddressService ipAddressService)
+            IIpAddressService ipAddressService,
+            IDimensionKeyFactory dimensionKeyFactory)
         {
             _vectorInputConversionService = vectorInputConversionService;
 
@@ -29,11 +30,11 @@ namespace Desktop.Ping
                 return Task.FromResult(dimValue);
             }
 
-            ipAddressService.IpAddressObservable.Subscribe(a =>
+            ipAddressService.IpAddressObservable.Subscribe(ipAddresses =>
             {
-                _ipSpecificDimensions = a.ToDictionary(ip => ip, ip => (IReadOnlyDictionary<IDimensionKey, Func<IPingResponse, Task<double>>>)new Dictionary<IDimensionKey, Func<IPingResponse, Task<double>>>
+                _ipSpecificDimensions = ipAddresses.ToDictionary(ip => ip, ip => (IReadOnlyDictionary<IDimensionKey, Func<IPingResponse, Task<double>>>)new Dictionary<IDimensionKey, Func<IPingResponse, Task<double>>>
                 {
-                    {new DimensionKey($"{ip} status flag"), DimensionValueFactory}
+                    {dimensionKeyFactory.GetOrCreate($"{ip} status flag"), DimensionValueFactory}
                 });
             });
             
