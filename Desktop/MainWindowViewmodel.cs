@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using Desktop.Ping;
+using Desktop.Target;
 using Desktop.Vector;
 using zh.LocalPingLib.Ping;
 
@@ -19,8 +24,11 @@ namespace Desktop
         private readonly IVectorComparer _vectorComparer;
         private IVector _previousVector;
 
-        public MainWindowViewmodel(IPingTimer pingTimer, 
-            IPingService pingService, 
+        public ObservableCollection<TargetDatamodel> TargetDatamodels { get; }
+        private readonly IDictionary<IPAddress, TargetDatamodel> _targetDatamodels;
+
+        public MainWindowViewmodel(IPingTimer pingTimer,
+            IPingService pingService,
             IPingCollectionVectorFactory pingCollectionVectorFactory,
             IVectorComparer vectorComparer,
             IIpAddressService ipAddressService)
@@ -31,7 +39,9 @@ namespace Desktop
             _vectorComparer = vectorComparer;
             IObservable<long> pingTimerObservable = _pingTimer.Start(() => false);
             IDisposable pingResponseSubscription = null;
-
+            _targetDatamodels = new ConcurrentDictionary<IPAddress, TargetDatamodel>();
+            var d = Dispatcher.CurrentDispatcher;
+            
             ipAddressService.IpAddressObservable.Subscribe(ipAddresses =>
             {
                 pingResponseSubscription?.Dispose();
@@ -42,6 +52,21 @@ namespace Desktop
                     var tasks = pingResponseTasks.Select(async pingResponseTask =>
                     {
                         var pingResponse = await pingResponseTask;
+                        TargetDatamodel targetDatamodel;
+                        if (_targetDatamodels.TryGetValue(pingResponse.TargetIpAddress, out var targetDatamodelX))
+                        {
+                            targetDatamodel = targetDatamodelX;
+                            targetDatamodel.RoundTripTime = pingResponse.RoundTripTime;
+                            targetDatamodel.StatusText = GetStatus(pingResponse.Status);
+                        }
+                        else
+                        {
+                            targetDatamodel = new TargetDatamodel(address: pingResponse.TargetIpAddress.ToString(),
+                                statusText: GetStatus(pingResponse.Status),
+                                roundTripTime: pingResponse.RoundTripTime);
+                            _targetDatamodels.Add(pingResponse.TargetIpAddress, targetDatamodel);
+                            d.Invoke(()=> TargetDatamodels.Add(targetDatamodel));
+                        }
                         //Log($"address:{pingResponse.ReponseIpAddress} RTT:{pingResponse.RoundTripTime.TotalMilliseconds} status:{pingResponse.Status}");
                         return pingResponse;
                     });
@@ -56,7 +81,21 @@ namespace Desktop
                 });
             });
 
+            //var targetDatamodel1 = new TargetDatamodel(address: "Address 1", statusText: "Status", roundTripTime: TimeSpan.FromMilliseconds(25));
+            //var targetDatamodel2 = new TargetDatamodel(address: "Address 2", statusText: "Status", roundTripTime: TimeSpan.FromMilliseconds(25));
+            //new[] { targetDatamodel1, targetDatamodel2 }
+            TargetDatamodels = new ObservableCollection<TargetDatamodel>();
+        }
 
+        private string GetStatus(IPStatus pingResponseStatus)
+        {
+            switch (pingResponseStatus)
+            {
+                case IPStatus.Success:
+                    return "Success";
+                default:
+                    return "Error";
+            }
         }
 
         private void Log(string message)
@@ -64,6 +103,6 @@ namespace Desktop
             Debug.WriteLine(message);
         }
 
-        
+
     }
 }

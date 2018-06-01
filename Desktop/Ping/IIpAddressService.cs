@@ -25,7 +25,7 @@ namespace Desktop.Ping
 
         public IPAddress GetAddress(int index)
         {
-            return IPAddress.Parse($"192.168.1.{index}");
+            return IPAddress.Parse($"192.168.86.{index}");
         }
     }
 }

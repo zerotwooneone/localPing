@@ -66,6 +66,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Target\TargetDatamodel.cs" />
     <Compile Include="Ping\DimensionKeyFactory.cs" />
     <Compile Include="Ping\IDimensionKeyFactory.cs" />
     <Compile Include="Ping\IIpAddressService.cs" />
@@ -73,6 +75,9 @@
     <Compile Include="Ping\IPingVectorFactory.cs" />
     <Compile Include="Ping\PingCollectionVectorFactory.cs" />
     <Compile Include="Ping\PingVectorFactory.cs" />
+    <Compile Include="Target\TargetView.xaml.cs">
+      <DependentUpon>TargetView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Vector\VectorModule.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -86,6 +91,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Target\TargetView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainWindowViewmodel.cs" />
