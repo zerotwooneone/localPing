@@ -21,6 +21,7 @@ namespace Desktop
         private readonly IPingTimer _pingTimer;
         private readonly IPingService _pingService;
         private readonly IPingCollectionVectorFactory _pingCollectionVectorFactory;
+        private readonly IPingVectorFactory _pingVectorFactory;
         private readonly IVectorComparer _vectorComparer;
         private IVector _previousVector;
 
@@ -30,12 +31,14 @@ namespace Desktop
         public MainWindowViewmodel(IPingTimer pingTimer,
             IPingService pingService,
             IPingCollectionVectorFactory pingCollectionVectorFactory,
+            IPingVectorFactory pingVectorFactory,
             IVectorComparer vectorComparer,
             IIpAddressService ipAddressService)
         {
             _pingTimer = pingTimer;
             _pingService = pingService;
             _pingCollectionVectorFactory = pingCollectionVectorFactory;
+            _pingVectorFactory = pingVectorFactory;
             _vectorComparer = vectorComparer;
             IObservable<long> pingTimerObservable = _pingTimer.Start(() => false);
             IDisposable pingResponseSubscription = null;
@@ -71,7 +74,8 @@ namespace Desktop
                         return pingResponse;
                     });
                     var responses = await Task.WhenAll(tasks);
-                    var currentVector = _pingCollectionVectorFactory.GetVector(responses);
+                    var vectors = responses.Select(_pingVectorFactory.GetVector);
+                    var currentVector = _pingCollectionVectorFactory.GetVector(vectors);
                     if (_previousVector != null)
                     {
                         Log($"diff:{_vectorComparer.Compare(_previousVector, currentVector)}");

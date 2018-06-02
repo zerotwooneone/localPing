@@ -10,19 +10,11 @@ namespace Desktop.Ping
 {
     public class PingCollectionVectorFactory : IPingCollectionVectorFactory
     {
-        private readonly IPingVectorFactory _pingVectorFactory;
-        private IReadOnlyDictionary<IPAddress, IReadOnlyDictionary<IDimensionKey, Func<IPingResponse, Task<double>>>> _ipSpecificDimensions;
-
-        public PingCollectionVectorFactory(IPingVectorFactory pingVectorFactory)
+        
+        public IVector GetVector(IEnumerable<IVector> pingVectors)
         {
-            _pingVectorFactory = pingVectorFactory;
-        }
-
-        public IVector GetVector(IEnumerable<IPingResponse> pingResponses)
-        {
-            var dimensionValueArrays = pingResponses.Select(response =>
+            var dimensionValueArrays = pingVectors.Select(pingVector =>
             {
-                var pingVector = _pingVectorFactory.GetVector(response);
                 var vectorDimensionValues = pingVector.DimensionValues;
                 return vectorDimensionValues;
             });
