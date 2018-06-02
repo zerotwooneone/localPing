@@ -1,28 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Desktop.Annotations;
 
 namespace Desktop.Target
 {
     public class TargetDatamodel: INotifyPropertyChanged
     {
-        private string _address;
-        private string _statusText;
+        private IPAddress _address;
+        private bool _statusSuccess;
         private TimeSpan _roundTripTime;
 
-        public TargetDatamodel(string address, string statusText, TimeSpan roundTripTime)
+        public TargetDatamodel(IPAddress address, bool statusSuccess, TimeSpan roundTripTime)
         {
             Address = address;
-            StatusText = statusText;
+            StatusSuccess = statusSuccess;
             RoundTripTime = roundTripTime;
         }
 
-        public string Address
+        public IPAddress Address
         {
             get => _address;
             set
@@ -33,13 +30,13 @@ namespace Desktop.Target
             }
         }
 
-        public string StatusText
+        public bool StatusSuccess
         {
-            get => _statusText;
+            get => _statusSuccess;
             set
             {
-                if (value == _statusText) return;
-                _statusText = value;
+                if (value == _statusSuccess) return;
+                _statusSuccess = value;
                 OnPropertyChanged();
             }
         }

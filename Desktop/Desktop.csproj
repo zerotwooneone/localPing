@@ -66,6 +66,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\BooleanConverter.cs" />
+    <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="Ping\DimensionKeyUtil.cs" />
     <Compile Include="Ping\IDimensionKeyUtil.cs" />
     <Compile Include="Properties\Annotations.cs" />

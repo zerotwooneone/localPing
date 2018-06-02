@@ -57,12 +57,12 @@ namespace Desktop
                         {
                             targetDatamodel = targetDatamodelX;
                             targetDatamodel.RoundTripTime = pingResponse.RoundTripTime;
-                            targetDatamodel.StatusText = GetStatus(pingResponse.Status);
+                            targetDatamodel.StatusSuccess = GetStatusSuccess(pingResponse.Status);
                         }
                         else
                         {
-                            targetDatamodel = new TargetDatamodel(address: pingResponse.TargetIpAddress.ToString(),
-                                statusText: GetStatus(pingResponse.Status),
+                            targetDatamodel = new TargetDatamodel(address: pingResponse.TargetIpAddress,
+                                statusSuccess: GetStatusSuccess(pingResponse.Status),
                                 roundTripTime: pingResponse.RoundTripTime);
                             _targetDatamodels.Add(pingResponse.TargetIpAddress, targetDatamodel);
                             d.Invoke(()=> TargetDatamodels.Add(targetDatamodel));
@@ -71,7 +71,7 @@ namespace Desktop
                         return pingResponse;
                     });
                     var responses = await Task.WhenAll(tasks);
-                    var currentVector = await _pingCollectionVectorFactory.GetVector(responses);
+                    var currentVector = _pingCollectionVectorFactory.GetVector(responses);
                     if (_previousVector != null)
                     {
                         Log($"diff:{_vectorComparer.Compare(_previousVector, currentVector)}");
@@ -81,20 +81,17 @@ namespace Desktop
                 });
             });
 
-            //var targetDatamodel1 = new TargetDatamodel(address: "Address 1", statusText: "Status", roundTripTime: TimeSpan.FromMilliseconds(25));
-            //var targetDatamodel2 = new TargetDatamodel(address: "Address 2", statusText: "Status", roundTripTime: TimeSpan.FromMilliseconds(25));
-            //new[] { targetDatamodel1, targetDatamodel2 }
             TargetDatamodels = new ObservableCollection<TargetDatamodel>();
         }
 
-        private string GetStatus(IPStatus pingResponseStatus)
+        private bool GetStatusSuccess(IPStatus pingResponseStatus)
         {
             switch (pingResponseStatus)
             {
                 case IPStatus.Success:
-                    return "Success";
+                    return true;
                 default:
-                    return "Error";
+                    return false;
             }
         }
 

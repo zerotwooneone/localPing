@@ -14,7 +14,11 @@
         </Grid.ColumnDefinitions>
         <TextBlock Text="{Binding Address}"
                    Grid.Column="0"></TextBlock>
-        <TextBlock Text="{Binding StatusText}"
+        <TextBlock Text="Success"
+            Visibility="{Binding StatusSuccess, Converter={StaticResource BooleanToVisibilityConverter}}"
+                   Grid.Column="1"></TextBlock>
+        <TextBlock Text="Error"
+                   Visibility="{Binding StatusSuccess, Converter={StaticResource BooleanToHiddenConverter}}"
                    Grid.Column="1"></TextBlock>
         <TextBlock Text="{Binding RoundTripTime,StringFormat=ss\\.fff}"
                    Grid.Column="2"></TextBlock>

@@ -1,5 +1,4 @@
-﻿using System;
-using Desktop.Vector;
+﻿using Desktop.Vector;
 using zh.LocalPingLib.Ping;
 
 namespace Desktop.Ping
