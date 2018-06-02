@@ -7,6 +7,6 @@ namespace Desktop.Ping
 {
     public interface IPingCollectionVectorFactory
     {
-        Task<IVector> GeVector(IEnumerable<IPingResponse> pingResponses);
+        Task<IVector> GetVector(IEnumerable<IPingResponse> pingResponses);
     }
 }

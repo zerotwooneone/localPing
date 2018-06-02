@@ -11,50 +11,25 @@ namespace Desktop.Ping
 {
     public class PingCollectionVectorFactory : IPingCollectionVectorFactory
     {
-        private readonly IVectorInputConversionService<IPingResponse> _vectorInputConversionService;
+        private readonly IPingVectorFactory _pingVectorFactory;
         private IReadOnlyDictionary<IPAddress, IReadOnlyDictionary<IDimensionKey, Func<IPingResponse, Task<double>>>> _ipSpecificDimensions;
 
-        public PingCollectionVectorFactory(IVectorInputConversionService<IPingResponse> vectorInputConversionService,
-            IIpAddressService ipAddressService,
-            IDimensionKeyFactory dimensionKeyFactory)
+        public PingCollectionVectorFactory(IPingVectorFactory pingVectorFactory)
         {
-            _vectorInputConversionService = vectorInputConversionService;
-
-            Task<double> DimensionValueFactory(IPingResponse pr)
-            {
-                var status = pr.Status.GetHashCode();
-                const double statusTrue = 104;
-                const double statusFalse = 117;
-                var statusFlag = status == 0 ? statusTrue : statusFalse;
-                var dimValue = statusFlag;
-                return Task.FromResult(dimValue);
-            }
-
-            ipAddressService.IpAddressObservable.Subscribe(ipAddresses =>
-            {
-                _ipSpecificDimensions = ipAddresses.ToDictionary(ip => ip, ip => (IReadOnlyDictionary<IDimensionKey, Func<IPingResponse, Task<double>>>)new Dictionary<IDimensionKey, Func<IPingResponse, Task<double>>>
-                {
-                    {dimensionKeyFactory.GetOrCreate($"{ip} status flag"), DimensionValueFactory}
-                });
-            });
-
+            _pingVectorFactory = pingVectorFactory;
         }
 
-        public async Task<IVector> GeVector(IEnumerable<IPingResponse> pingResponses)
+        public async Task<IVector> GetVector(IEnumerable<IPingResponse> pingResponses)
         {
-            var x = pingResponses.Select(async response =>
+            var dimensionValueTasks = pingResponses.Select(async response =>
             {
-                IReadOnlyDictionary<IDimensionKey, Func<IPingResponse, Task<double>>> dimensions;
-                dimensions = _ipSpecificDimensions[response.TargetIpAddress];
-                var vectorTask = _vectorInputConversionService.GetVector(response, dimensions);
-
-                var vector = await vectorTask;
-                var dimensionValues = vector.DimensionValues;
-                return dimensionValues;
+                var pingVector = _pingVectorFactory.GetVector(response);
+                var vectorDimensionValues = pingVector.DimensionValues;
+                return vectorDimensionValues;
             });
-            var y = await Task.WhenAll(x);
-            var z = y.SelectMany(i => i);
-            return new Vector.Vector(z);
+            var dimensionValueArrays = await Task.WhenAll(dimensionValueTasks);
+            var dimensionValues = dimensionValueArrays.SelectMany(i => i);
+            return new Vector.Vector(dimensionValues);
         }
     }
 }

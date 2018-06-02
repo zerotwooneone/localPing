@@ -71,7 +71,7 @@ namespace Desktop
                         return pingResponse;
                     });
                     var responses = await Task.WhenAll(tasks);
-                    var currentVector = await _pingCollectionVectorFactory.GeVector(responses);
+                    var currentVector = await _pingCollectionVectorFactory.GetVector(responses);
                     if (_previousVector != null)
                     {
                         Log($"diff:{_vectorComparer.Compare(_previousVector, currentVector)}");
