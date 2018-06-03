@@ -70,6 +70,7 @@
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="Ping\DimensionKeyUtil.cs" />
     <Compile Include="Ping\IDimensionKeyUtil.cs" />
+    <Compile Include="Ping\IpAddressService.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Target\TargetDatamodel.cs" />
     <Compile Include="Ping\DimensionKeyFactory.cs" />

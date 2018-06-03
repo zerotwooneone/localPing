@@ -11,12 +11,25 @@ namespace Desktop.Target
         private IPAddress _address;
         private bool _statusSuccess;
         private TimeSpan _roundTripTime;
-
+        private double _change;
+        
         public TargetDatamodel(IPAddress address, bool statusSuccess, TimeSpan roundTripTime)
         {
             Address = address;
             StatusSuccess = statusSuccess;
             RoundTripTime = roundTripTime;
+            Change = 0;
+        }
+
+        public double Change
+        {
+            get => _change;
+            set
+            {
+                if (value.Equals(_change)) return;
+                _change = value;
+                OnPropertyChanged();
+            }
         }
 
         public IPAddress Address

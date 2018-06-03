@@ -26,7 +26,7 @@ namespace Desktop
         private IVector _previousVector;
 
         public ObservableCollection<TargetDatamodel> TargetDatamodels { get; }
-        private readonly IDictionary<IPAddress, TargetDatamodel> _targetDatamodels;
+        private readonly IDictionary<IPAddress, PingState> _targetDatamodels;
 
         public MainWindowViewmodel(IPingTimer pingTimer,
             IPingService pingService,
@@ -42,7 +42,7 @@ namespace Desktop
             _vectorComparer = vectorComparer;
             IObservable<long> pingTimerObservable = _pingTimer.Start(() => false);
             IDisposable pingResponseSubscription = null;
-            _targetDatamodels = new ConcurrentDictionary<IPAddress, TargetDatamodel>();
+            _targetDatamodels = new ConcurrentDictionary<IPAddress, PingState>();
             var d = Dispatcher.CurrentDispatcher;
             
             ipAddressService.IpAddressObservable.Subscribe(ipAddresses =>
@@ -52,29 +52,31 @@ namespace Desktop
                     pingTimerObservable.Select(l => _pingService.Ping(ipAddresses));
                 pingResponseSubscription = pingResponseObservable.Subscribe(async pingResponseTasks =>
                 {
-                    var tasks = pingResponseTasks.Select(async pingResponseTask =>
+                    var responses = await Task.WhenAll(pingResponseTasks);
+                    var vectors = responses.Select(pingResponse =>
                     {
-                        var pingResponse = await pingResponseTask;
-                        TargetDatamodel targetDatamodel;
-                        if (_targetDatamodels.TryGetValue(pingResponse.TargetIpAddress, out var targetDatamodelX))
+                        var v = _pingVectorFactory.GetVector(pingResponse);
+                        if (_targetDatamodels.TryGetValue(pingResponse.TargetIpAddress, out var pingState))
                         {
-                            targetDatamodel = targetDatamodelX;
-                            targetDatamodel.RoundTripTime = pingResponse.RoundTripTime;
-                            targetDatamodel.StatusSuccess = GetStatusSuccess(pingResponse.Status);
+                            var targetDatamodelX = pingState.TargetDatamodel;
+                            targetDatamodelX.RoundTripTime = pingResponse.RoundTripTime;
+                            targetDatamodelX.StatusSuccess = GetStatusSuccess(pingResponse.Status);
+                            var change = _vectorComparer.Compare(pingState.Previous, v);
+                            targetDatamodelX.Change = change;
+
+                            pingState.Previous = v;
                         }
                         else
                         {
-                            targetDatamodel = new TargetDatamodel(address: pingResponse.TargetIpAddress,
+                            var targetDatamodel = new TargetDatamodel(address: pingResponse.TargetIpAddress,
                                 statusSuccess: GetStatusSuccess(pingResponse.Status),
                                 roundTripTime: pingResponse.RoundTripTime);
-                            _targetDatamodels.Add(pingResponse.TargetIpAddress, targetDatamodel);
+                            _targetDatamodels.Add(pingResponse.TargetIpAddress, new PingState{TargetDatamodel = targetDatamodel, Previous = v});
                             d.Invoke(()=> TargetDatamodels.Add(targetDatamodel));
                         }
-                        //Log($"address:{pingResponse.ReponseIpAddress} RTT:{pingResponse.RoundTripTime.TotalMilliseconds} status:{pingResponse.Status}");
-                        return pingResponse;
+
+                        return v;
                     });
-                    var responses = await Task.WhenAll(tasks);
-                    var vectors = responses.Select(_pingVectorFactory.GetVector);
                     var currentVector = _pingCollectionVectorFactory.GetVector(vectors);
                     if (_previousVector != null)
                     {
@@ -105,5 +107,11 @@ namespace Desktop
         }
 
 
+    }
+
+    public class PingState
+    {
+        public TargetDatamodel TargetDatamodel { get; set; }
+        public IVector Previous { get; set; }
     }
 }
