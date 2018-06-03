@@ -11,6 +11,7 @@
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <TextBlock Text="{Binding Address}"
                    Grid.Column="0"></TextBlock>
@@ -22,5 +23,7 @@
                    Grid.Column="1"></TextBlock>
         <TextBlock Text="{Binding RoundTripTime,StringFormat=ss\\.fff}"
                    Grid.Column="2"></TextBlock>
+        <TextBlock Text="{Binding Change}"
+                   Grid.Column="3"></TextBlock>
     </Grid>
 </UserControl>
