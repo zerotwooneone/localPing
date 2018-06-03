@@ -66,6 +66,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\BooleanConverter.cs" />
+    <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Ping\DimensionKeyUtil.cs" />
+    <Compile Include="Ping\IDimensionKeyUtil.cs" />
+    <Compile Include="Ping\IpAddressService.cs" />
+    <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Target\TargetDatamodel.cs" />
     <Compile Include="Ping\DimensionKeyFactory.cs" />
     <Compile Include="Ping\IDimensionKeyFactory.cs" />
     <Compile Include="Ping\IIpAddressService.cs" />
@@ -73,12 +80,10 @@
     <Compile Include="Ping\IPingVectorFactory.cs" />
     <Compile Include="Ping\PingCollectionVectorFactory.cs" />
     <Compile Include="Ping\PingVectorFactory.cs" />
-    <Compile Include="Vector\IVectorComparer.cs" />
-    <Compile Include="Vector\IVectorInputConversionService.cs" />
-    <Compile Include="Vector\VectorInputConversionService.cs" />
+    <Compile Include="Target\TargetView.xaml.cs">
+      <DependentUpon>TargetView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Vector\VectorModule.cs" />
-    <Compile Include="Vector\Vector.cs" />
-    <Compile Include="Vector\VectorComparer.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -87,15 +92,14 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Vector\DimensionKey.cs" />
-    <Compile Include="Vector\DimensionValue.cs" />
-    <Compile Include="Vector\IDimensionKey.cs" />
-    <Compile Include="Vector\IDimensionValue.cs" />
-    <Compile Include="Vector\IVector.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Target\TargetView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainWindowViewmodel.cs" />
@@ -135,6 +139,10 @@
     <ProjectReference Include="..\zh.LocalPingLib\zh.LocalPingLib.csproj">
       <Project>{e1226b67-b1a3-49a9-af50-8c6fad617984}</Project>
       <Name>zh.LocalPingLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\zh.Vector\zh.Vector.csproj">
+      <Project>{b38c36b4-47c2-4d9f-a598-5662cbac93c0}</Project>
+      <Name>zh.Vector</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
