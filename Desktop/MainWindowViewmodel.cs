@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Desktop.Ping;
@@ -27,6 +28,7 @@ namespace Desktop
 
         public ObservableCollection<TargetDatamodel> TargetDatamodels { get; }
         private readonly IDictionary<IPAddress, PingState> _targetDatamodels;
+        public IObservable<int> ResortObservable { get; }
 
         public MainWindowViewmodel(IPingTimer pingTimer,
             IPingService pingService,
@@ -44,6 +46,8 @@ namespace Desktop
             IDisposable pingResponseSubscription = null;
             _targetDatamodels = new ConcurrentDictionary<IPAddress, PingState>();
             var d = Dispatcher.CurrentDispatcher;
+            var resortSubject = new Subject<int>();
+            ResortObservable = resortSubject;
             
             ipAddressService.IpAddressObservable.Subscribe(ipAddresses =>
             {
@@ -84,6 +88,7 @@ namespace Desktop
                     }
 
                     _previousVector = currentVector;
+                    resortSubject.OnNext(0);
                 });
             });
 

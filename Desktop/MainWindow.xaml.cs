@@ -17,7 +17,7 @@ namespace Desktop
             DataContext = mainWindowViewmodel;
             InitializeComponent();
             _targetViewSource = (CollectionViewSource)Resources["TargetView"];
-            Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(t =>
+            mainWindowViewmodel.ResortObservable.Subscribe(t =>
             {
                 Dispatcher.Invoke(() =>
                 {
