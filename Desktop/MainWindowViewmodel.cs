@@ -10,6 +10,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using Desktop.Dispatcher;
 using Desktop.Ping;
 using Desktop.Target;
 using Desktop.Vector;
@@ -35,7 +36,8 @@ namespace Desktop
             IPingCollectionVectorFactory pingCollectionVectorFactory,
             IPingVectorFactory pingVectorFactory,
             IVectorComparer vectorComparer,
-            IIpAddressService ipAddressService)
+            IIpAddressService ipAddressService,
+            IDispatcherAccessor dispatcherAccessor)
         {
             _pingTimer = pingTimer;
             _pingService = pingService;
@@ -45,7 +47,7 @@ namespace Desktop
             IObservable<long> pingTimerObservable = _pingTimer.Start(() => false);
             IDisposable pingResponseSubscription = null;
             _targetDatamodels = new ConcurrentDictionary<IPAddress, PingState>();
-            var d = Dispatcher.CurrentDispatcher;
+            var d = dispatcherAccessor.GetDispatcher();
             var resortSubject = new Subject<int>();
             ResortObservable = resortSubject;
             
@@ -59,27 +61,27 @@ namespace Desktop
                     var responses = await Task.WhenAll(pingResponseTasks);
                     var vectors = responses.Select(pingResponse =>
                     {
-                        var v = _pingVectorFactory.GetVector(pingResponse);
+                        var pingVector = _pingVectorFactory.GetVector(pingResponse);
                         if (_targetDatamodels.TryGetValue(pingResponse.TargetIpAddress, out var pingState))
                         {
                             var targetDatamodelX = pingState.TargetDatamodel;
                             targetDatamodelX.RoundTripTime = pingResponse.RoundTripTime;
                             targetDatamodelX.StatusSuccess = GetStatusSuccess(pingResponse.Status);
-                            var change = _vectorComparer.Compare(pingState.Previous, v);
+                            var change = _vectorComparer.Compare(pingState.Previous, pingVector);
                             targetDatamodelX.Change = change;
 
-                            pingState.Previous = v;
+                            pingState.Previous = pingVector;
                         }
                         else
                         {
                             var targetDatamodel = new TargetDatamodel(address: pingResponse.TargetIpAddress,
                                 statusSuccess: GetStatusSuccess(pingResponse.Status),
                                 roundTripTime: pingResponse.RoundTripTime);
-                            _targetDatamodels.Add(pingResponse.TargetIpAddress, new PingState{TargetDatamodel = targetDatamodel, Previous = v});
+                            _targetDatamodels.Add(pingResponse.TargetIpAddress, new PingState{TargetDatamodel = targetDatamodel, Previous = pingVector});
                             d.Invoke(()=> TargetDatamodels.Add(targetDatamodel));
                         }
 
-                        return v;
+                        return pingVector;
                     });
                     var currentVector = _pingCollectionVectorFactory.GetVector(vectors);
                     if (_previousVector != null)
@@ -110,13 +112,7 @@ namespace Desktop
         {
             Debug.WriteLine(message);
         }
-
-
     }
 
-    public class PingState
-    {
-        public TargetDatamodel TargetDatamodel { get; set; }
-        public IVector Previous { get; set; }
-    }
+    
 }

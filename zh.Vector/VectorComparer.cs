@@ -35,7 +35,7 @@ namespace Desktop.Vector
             }
 
             var arcCos = Math.Acos(frac);
-
+            
             return arcCos;
         }
     }

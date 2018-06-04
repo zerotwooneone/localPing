@@ -68,6 +68,9 @@
     </ApplicationDefinition>
     <Compile Include="Converters\BooleanConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Dispatcher\IDispatcherAccessor.cs" />
+    <Compile Include="Dispatcher\DispatcherModule.cs" />
+    <Compile Include="PingState.cs" />
     <Compile Include="Ping\DimensionKeyUtil.cs" />
     <Compile Include="Ping\IDimensionKeyUtil.cs" />
     <Compile Include="Ping\IpAddressService.cs" />
@@ -84,6 +87,7 @@
       <DependentUpon>TargetView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Vector\VectorModule.cs" />
+    <Compile Include="Dispatcher\WpfDispatcherAccessor.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

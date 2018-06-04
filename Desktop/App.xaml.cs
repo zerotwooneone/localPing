@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using Desktop.Dispatcher;
 using Desktop.Ping;
 using Ninject;
 
@@ -18,6 +19,7 @@ namespace Desktop
             _iocKernel.Load(new PingModule());
             _iocKernel.Load(new PingLibModule());
             _iocKernel.Load(new VectorModule());
+            _iocKernel.Load(new DispatcherModule());
 
             Current.MainWindow = _iocKernel.Get<MainWindow>();
             Current.MainWindow.Show();
