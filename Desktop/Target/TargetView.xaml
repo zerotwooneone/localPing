@@ -6,24 +6,34 @@
              xmlns:local="clr-namespace:Desktop.Target"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="ColumnTextblock" TargetType="TextBlock" >
+            <Setter Property="Margin" Value="15,0"></Setter>
+        </Style>
+    </UserControl.Resources>
     <Grid >
         <Grid.ColumnDefinitions>
-            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition ></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <TextBlock Text="{Binding Address}"
-                   Grid.Column="0"></TextBlock>
+                   Grid.Column="0"
+                   Style="{StaticResource ColumnTextblock}"></TextBlock>
         <TextBlock Text="Success"
             Visibility="{Binding StatusSuccess, Converter={StaticResource BooleanToVisibilityConverter}}"
-                   Grid.Column="1"></TextBlock>
+                   Grid.Column="1"
+                   Style="{StaticResource ColumnTextblock}"></TextBlock>
         <TextBlock Text="Error"
                    Visibility="{Binding StatusSuccess, Converter={StaticResource BooleanToHiddenConverter}}"
-                   Grid.Column="1"></TextBlock>
+                   Grid.Column="1"
+                   Style="{StaticResource ColumnTextblock}"></TextBlock>
         <TextBlock Text="{Binding RoundTripTime,StringFormat=ss\\.fff}"
-                   Grid.Column="2"></TextBlock>
+                   Grid.Column="2"
+                   Style="{StaticResource ColumnTextblock}"></TextBlock>
         <TextBlock Text="{Binding Change}"
-                   Grid.Column="3"></TextBlock>
+                   Grid.Column="3"
+                   Style="{StaticResource ColumnTextblock}"></TextBlock>
     </Grid>
 </UserControl>

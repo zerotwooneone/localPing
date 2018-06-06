@@ -82,11 +82,11 @@ namespace Desktop
                         }
 
                         return pingVector;
-                    });
+                    }).ToArray();
                     var currentVector = _pingCollectionVectorFactory.GetVector(vectors);
                     if (_previousVector != null)
                     {
-                        Log($"diff:{_vectorComparer.Compare(_previousVector, currentVector)}");
+                        //Log($"diff:{_vectorComparer.Compare(_previousVector, currentVector)}");
                     }
 
                     _previousVector = currentVector;

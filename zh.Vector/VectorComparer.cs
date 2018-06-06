@@ -14,24 +14,42 @@ namespace Desktop.Vector
             foreach (var v2Value in v2.DimensionValues)
             {
                 var v1Value = v1Values[v2Value.DimensionKey];
-                var product = v1Value.Value * v2Value.Value;
+                checked
+                {
+                    var product = v1Value.Value * v2Value.Value;
 
-                dotProduct += product;
+                    dotProduct += product;
                 
-                squaredV1Sum += Math.Pow(v1Value.Value,2);
-                squaredV2Sum += Math.Pow(v2Value.Value, 2);
+                    squaredV1Sum += Math.Pow(v1Value.Value,2);
+                    squaredV2Sum += Math.Pow(v2Value.Value, 2);    
+                }
+            }
+
+            if (dotProduct == 0)
+            {
+                return 0;
             }
 
             var v1Length = Math.Sqrt(squaredV1Sum);
             var v2Length = Math.Sqrt(squaredV2Sum);
-            var lengthProduct = v1Length * v2Length;
+
+            double lengthProduct;
+            checked
+            {
+                lengthProduct = v1Length * v2Length;
+            }
+
+            if (lengthProduct == 0)
+            {
+                return 0;
+            }
 
             var frac = dotProduct / lengthProduct;
 
-            const double fracTollerance = 0.00001;
+            const double fracTollerance = 0.000000000000001;
             if (Math.Abs(frac - 1) < fracTollerance)
             {
-                frac = 1;
+                return 1;
             }
 
             var arcCos = Math.Acos(frac);
