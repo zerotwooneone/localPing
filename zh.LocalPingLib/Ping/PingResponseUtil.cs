@@ -11,5 +11,10 @@ namespace zh.LocalPingLib.Ping
             var targetIpAddress = (IPAddress) pingCompletedEventArgs.UserState;
             return new PingResponse(pingCompletedEventArgs.Reply.Address, TimeSpan.FromMilliseconds(pingCompletedEventArgs.Reply.RoundtripTime), pingCompletedEventArgs.Reply.Status, targetIpAddress);
         }
+
+        public bool IsSuccess(IPStatus ipStatus)
+        {
+            return ipStatus == IPStatus.Success;
+        }
     }
 }

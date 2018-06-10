@@ -5,6 +5,6 @@ namespace Desktop.Ping
 {
     public interface IPingVectorFactory
     {
-        IVector GetVector(IPingResponse pingResponse);
+        IVector GetVector(IPingResponse pingResponse, IPingStats stats);
     }
 }

@@ -25,10 +25,13 @@ namespace Desktop
         private readonly IPingCollectionVectorFactory _pingCollectionVectorFactory;
         private readonly IPingVectorFactory _pingVectorFactory;
         private readonly IVectorComparer _vectorComparer;
+        private readonly PingStatsUtil _pingStatsUtil;
+        private readonly IPingResponseUtil _pingResponseUtil;
         private IVector _previousVector;
 
         public ObservableCollection<TargetDatamodel> TargetDatamodels { get; }
         private readonly IDictionary<IPAddress, PingState> _targetDatamodels;
+        private IDictionary<IPAddress, PingStats> _stats;
         public IObservable<int> ResortObservable { get; }
 
         public MainWindowViewmodel(IPingTimer pingTimer,
@@ -37,16 +40,21 @@ namespace Desktop
             IPingVectorFactory pingVectorFactory,
             IVectorComparer vectorComparer,
             IIpAddressService ipAddressService,
-            IDispatcherAccessor dispatcherAccessor)
+            IDispatcherAccessor dispatcherAccessor,
+            PingStatsUtil pingStatsUtil,
+            IPingResponseUtil pingResponseUtil)
         {
             _pingTimer = pingTimer;
             _pingService = pingService;
             _pingCollectionVectorFactory = pingCollectionVectorFactory;
             _pingVectorFactory = pingVectorFactory;
             _vectorComparer = vectorComparer;
+            _pingStatsUtil = pingStatsUtil;
+            _pingResponseUtil = pingResponseUtil;
             IObservable<long> pingTimerObservable = _pingTimer.Start(() => false);
             IDisposable pingResponseSubscription = null;
             _targetDatamodels = new ConcurrentDictionary<IPAddress, PingState>();
+            _stats = new ConcurrentDictionary<IPAddress, PingStats>();
             var d = dispatcherAccessor.GetDispatcher();
             var resortSubject = new Subject<int>();
             ResortObservable = resortSubject;
@@ -61,7 +69,8 @@ namespace Desktop
                     var responses = await Task.WhenAll(pingResponseTasks);
                     var vectors = responses.Select(pingResponse =>
                     {
-                        var pingVector = _pingVectorFactory.GetVector(pingResponse);
+                        var stats = GetUpdatedStats(pingResponse);
+                        var pingVector = _pingVectorFactory.GetVector(pingResponse, stats);
                         if (_targetDatamodels.TryGetValue(pingResponse.TargetIpAddress, out var pingState))
                         {
                             var targetDatamodelX = pingState.TargetDatamodel;
@@ -97,6 +106,24 @@ namespace Desktop
             TargetDatamodels = new ObservableCollection<TargetDatamodel>();
         }
 
+        private IPingStats GetUpdatedStats(IPingResponse pingResponse)
+        {
+            PingStats stats;
+            var targetIpAddress = pingResponse.TargetIpAddress;
+            if (_stats.TryGetValue(targetIpAddress, out var found))
+            {
+                stats = found;
+            }
+            else
+            {
+                stats = new PingStats();
+                _stats.Add(targetIpAddress,stats);
+            }
+            var isSuccess = _pingResponseUtil.IsSuccess(pingResponse.Status);
+            _pingStatsUtil.AddStatus(stats.StatusHistory,isSuccess);
+            return stats;
+        }
+
         private bool GetStatusSuccess(IPStatus pingResponseStatus)
         {
             switch (pingResponseStatus)
@@ -114,5 +141,40 @@ namespace Desktop
         }
     }
 
-    
+    public class PingStats:IPingStats
+    {
+        public IList<bool> StatusHistory { get; }
+
+        IEnumerable<bool> IPingStats.StatusHistory => StatusHistory;
+
+        public PingStats()
+        {
+            StatusHistory = new List<bool>();
+        }
+    }
+
+    public interface IPingStats
+    {
+        IEnumerable<bool> StatusHistory { get; }
+    }
+
+    public class PingStatsUtil
+    {
+        public void AddStatus(IList<bool> statusHistory, bool status)
+        {
+            statusHistory.Add(status);
+            if (statusHistory.Count > 5)
+            {
+                statusHistory.RemoveAt(0);
+            }
+        }
+
+        public double GetAverageSuccessRate(IEnumerable<bool> statusHistory)
+        {
+            var enumerable = statusHistory as bool[] ?? statusHistory.ToArray();
+            var sum = enumerable.Sum((b) => b ? 1.0 : 0.0);
+            var average = sum / enumerable.Count();
+            return average;
+        }
+    }
 }

@@ -19,7 +19,7 @@ namespace Desktop
             _targetViewSource = (CollectionViewSource)Resources["TargetView"];
             mainWindowViewmodel.ResortObservable.Subscribe(t =>
             {
-                Dispatcher.Invoke(() =>
+                Dispatcher.InvokeAsync(() =>
                 {
                     _targetViewSource.View.Refresh();
                 });

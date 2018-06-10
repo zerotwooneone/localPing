@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Desktop.Vector;
 using zh.LocalPingLib.Ping;
 
@@ -10,17 +11,32 @@ namespace Desktop.Ping
     {
         private readonly IDimensionKeyFactory _dimensionKeyFactory;
         private readonly IDimensionKeyUtil _dimensionKeyUtil;
+        private readonly IPingResponseUtil _pingResponseUtil;
+        private readonly PingStatsUtil _pingStatsUtil;
 
         public PingVectorFactory(IDimensionKeyFactory dimensionKeyFactory,
-            IDimensionKeyUtil dimensionKeyUtil)
+            IDimensionKeyUtil dimensionKeyUtil,
+            IPingResponseUtil pingResponseUtil,
+            PingStatsUtil pingStatsUtil)
         {
             _dimensionKeyFactory = dimensionKeyFactory;
             _dimensionKeyUtil = dimensionKeyUtil;
+            _pingResponseUtil = pingResponseUtil;
+            _pingStatsUtil = pingStatsUtil;
         }
-        public IVector GetVector(IPingResponse pingResponse)
+        public IVector GetVector(IPingResponse pingResponse, IPingStats stats)
         {
-            var dimensionValues = GetPingResponseValues(pingResponse, GetStatusDimension, GetAddressDimension);
+            var pingResponseValues = GetPingResponseValues(pingResponse, GetStatusDimension, GetAddressDimension);
+            var statValues = GetStatsValue(pingResponse.TargetIpAddress, stats);
+            var dimensionValues = pingResponseValues.Concat(statValues);
             return new Vector.Vector(dimensionValues);
+        }
+
+        private IEnumerable<IDimensionValue> GetStatsValue(IPAddress pingResponseTargetIpAddress, IPingStats stats)
+        {
+            var averageSuccessRate = _pingStatsUtil.GetAverageSuccessRate(stats.StatusHistory);
+            var averageDimensionName = _dimensionKeyFactory.GetOrCreate("Average Success Rate");
+            return new[] {new DimensionValue(averageDimensionName, averageSuccessRate),};
         }
 
         private IEnumerable<IDimensionValue> GetPingResponseValues(IPingResponse pingResponse,
@@ -33,9 +49,10 @@ namespace Desktop.Ping
         {
             var statusFlagDimension = _dimensionKeyUtil.GetStatusFlag(pingResponse.TargetIpAddress);
             var dimensionKey = _dimensionKeyFactory.GetOrCreate(statusFlagDimension);
-            var intValue = pingResponse.Status.GetHashCode();
-            var doubleValue = HashInt(intValue);
-            var statusDimensionValue = new DimensionValue(dimensionKey, doubleValue);
+            const double success = (1+7)*13;
+            const double failure = (0+7)*13;
+            var statusFlagValue = _pingResponseUtil.IsSuccess(pingResponse.Status) ? success : failure;
+            var statusDimensionValue = new DimensionValue(dimensionKey, statusFlagValue);
             return statusDimensionValue;
         }
 
@@ -43,9 +60,9 @@ namespace Desktop.Ping
         {
             var dimensionKey = _dimensionKeyFactory.GetOrCreate("Ip Address");
             var intValue = pingResponse.TargetIpAddress.GetHashCode();
-            var doubleValue = HashInt(intValue);
-            var statusDimensionValue = new DimensionValue(dimensionKey, doubleValue);
-            return statusDimensionValue;
+            var ipValue = HashInt(intValue);
+            var ipDimensionValue = new DimensionValue(dimensionKey, ipValue);
+            return ipDimensionValue;
         }
 
         private double HashInt(int value)
