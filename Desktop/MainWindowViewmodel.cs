@@ -58,7 +58,7 @@ namespace Desktop
             var d = dispatcherAccessor.GetDispatcher();
             var resortSubject = new Subject<int>();
             ResortObservable = resortSubject;
-            
+
             ipAddressService.IpAddressObservable.Subscribe(ipAddresses =>
             {
                 pingResponseSubscription?.Dispose();
@@ -86,8 +86,8 @@ namespace Desktop
                             var targetDatamodel = new TargetDatamodel(address: pingResponse.TargetIpAddress,
                                 statusSuccess: GetStatusSuccess(pingResponse.Status),
                                 roundTripTime: pingResponse.RoundTripTime);
-                            _targetDatamodels.Add(pingResponse.TargetIpAddress, new PingState{TargetDatamodel = targetDatamodel, Previous = pingVector});
-                            d.Invoke(()=> TargetDatamodels.Add(targetDatamodel));
+                            _targetDatamodels.Add(pingResponse.TargetIpAddress, new PingState { TargetDatamodel = targetDatamodel, Previous = pingVector });
+                            d.Invoke(() => TargetDatamodels.Add(targetDatamodel));
                         }
 
                         return pingVector;
@@ -117,10 +117,20 @@ namespace Desktop
             else
             {
                 stats = new PingStats();
-                _stats.Add(targetIpAddress,stats);
+                _stats.Add(targetIpAddress, stats);
             }
             var isSuccess = _pingResponseUtil.IsSuccess(pingResponse.Status);
-            _pingStatsUtil.AddStatus(stats.StatusHistory,isSuccess);
+            _pingStatsUtil.AddStatus(stats.StatusHistory, isSuccess);
+
+            var v = isSuccess ? 1.0 : 0.0;
+            var prev = stats.Average25;
+            stats.Average25 = ((stats.Average25 * stats.Average25Count) + v) / (stats.Average25Count + 1);
+            if (stats.Average25Count < 25)
+            {
+                stats.Average25Count++;
+            }
+
+
             return stats;
         }
 
@@ -141,9 +151,11 @@ namespace Desktop
         }
     }
 
-    public class PingStats:IPingStats
+    public class PingStats : IPingStats
     {
         public IList<bool> StatusHistory { get; }
+        public double Average25 { get; set; }
+        public int Average25Count { get; set; }
 
         IEnumerable<bool> IPingStats.StatusHistory => StatusHistory;
 
@@ -156,6 +168,7 @@ namespace Desktop
     public interface IPingStats
     {
         IEnumerable<bool> StatusHistory { get; }
+        double Average25 { get; }
     }
 
     public class PingStatsUtil

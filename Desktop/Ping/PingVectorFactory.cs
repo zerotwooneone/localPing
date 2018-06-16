@@ -26,9 +26,11 @@ namespace Desktop.Ping
         }
         public IVector GetVector(IPingResponse pingResponse, IPingStats stats)
         {
-            var pingResponseValues = GetPingResponseValues(pingResponse, GetStatusDimension, GetAddressDimension);
-            var statValues = GetStatsValue(pingResponse.TargetIpAddress, stats);
-            var dimensionValues = pingResponseValues.Concat(statValues);
+            var pingResponseValues = GetPingResponseValues(pingResponse, GetStatusDimension);
+            var pingResponseValueX = GetPingResponseValuesX(pingResponse,GetAddressDimensions, r=>GetStatsValue(r.TargetIpAddress, stats));
+            //var statValues = GetStatsValue(pingResponse.TargetIpAddress, stats);
+            //var addressValues = GetAddressDimensions(pingResponse);
+            var dimensionValues = pingResponseValues.Concat(pingResponseValueX);
             return new Vector.Vector(dimensionValues);
         }
 
@@ -37,13 +39,26 @@ namespace Desktop.Ping
             var averageSuccessRate = Hash(_pingStatsUtil.GetAverageSuccessRate(stats.StatusHistory));
             var averageDimensionName = _dimensionKeyFactory.GetOrCreate("Average Success Rate");
             var scopedAverageDimensionName = _dimensionKeyFactory.GetOrCreate($"Average Success Rate {averageSuccessRate}");
-            return new[] { new DimensionValue(averageDimensionName, averageSuccessRate), new DimensionValue(scopedAverageDimensionName, averageSuccessRate) };
+            var avg25Name = _dimensionKeyFactory.GetOrCreate("Average 25");
+            var avg25ValueName = _dimensionKeyFactory.GetOrCreate($"Average 25 {stats.Average25}");
+            var avg25Value = Hash(stats.Average25)*1000;
+            return new[] { new DimensionValue(averageDimensionName, averageSuccessRate), 
+                new DimensionValue(scopedAverageDimensionName, averageSuccessRate),
+                new DimensionValue(avg25Name, avg25Value),
+                new DimensionValue(avg25ValueName, avg25Value)
+            };
         }
 
         private IEnumerable<IDimensionValue> GetPingResponseValues(IPingResponse pingResponse,
             params Func<IPingResponse, IDimensionValue>[] valuesFuncs)
         {
             return valuesFuncs.Select(f => f(pingResponse));
+        }
+
+        private IEnumerable<IDimensionValue> GetPingResponseValuesX(IPingResponse pingResponse,
+            params Func<IPingResponse, IEnumerable<IDimensionValue>>[] valuesFuncs)
+        {
+            return valuesFuncs.Select(f => f(pingResponse)).SelectMany(f=>f);
         }
 
         private DimensionValue GetStatusDimension(IPingResponse pingResponse)
@@ -57,23 +72,27 @@ namespace Desktop.Ping
             return statusDimensionValue;
         }
 
-        private DimensionValue GetAddressDimension(IPingResponse pingResponse)
+        private IEnumerable<IDimensionValue> GetAddressDimensions(IPingResponse pingResponse)
         {
             var dimensionKey = _dimensionKeyFactory.GetOrCreate("Ip Address");
             var intValue = pingResponse.TargetIpAddress.GetHashCode();
-            var ipValue = Hash(intValue) % 1000;
+            var ipValue = Hash(intValue);
             var ipDimensionValue = new DimensionValue(dimensionKey, ipValue);
-            return ipDimensionValue;
-        }
 
+            var ipDimensionKey = _dimensionKeyFactory.GetOrCreate($"Ip Address {pingResponse.TargetIpAddress}");
+            var ipSpecDimensionValue = new DimensionValue(ipDimensionKey, ipValue);
+
+            return new[] { ipDimensionValue, ipSpecDimensionValue };
+        }
+        private const double Modulus = 1000;
         private double Hash(int value)
         {
-            return (value + 7.0) * 13; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
+            return ((value + 7.0) * 13) % Modulus; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
         }
 
         private double Hash(double value)
         {
-            return (value + 7.0) * 13; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
+            return ((value + 7.0) * 13) % Modulus; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
         }
     }
 }
