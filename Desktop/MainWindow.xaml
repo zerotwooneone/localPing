@@ -13,6 +13,12 @@
             Source="{Binding TargetDatamodels}">
             <CollectionViewSource.SortDescriptions>
                 <componentModel:SortDescription PropertyName="Change" Direction="Descending"></componentModel:SortDescription>
+                <componentModel:SortDescription PropertyName="StatusSuccess" Direction="Descending"></componentModel:SortDescription>
+                <componentModel:SortDescription PropertyName="RoundTripTime" Direction="Descending"></componentModel:SortDescription>
+                <componentModel:SortDescription PropertyName="Octet0" ></componentModel:SortDescription>
+                <componentModel:SortDescription PropertyName="Octet1" ></componentModel:SortDescription>
+                <componentModel:SortDescription PropertyName="Octet2" ></componentModel:SortDescription>
+                <componentModel:SortDescription PropertyName="Octet3" ></componentModel:SortDescription>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
     </Window.Resources>

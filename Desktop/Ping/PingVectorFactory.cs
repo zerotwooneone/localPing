@@ -34,9 +34,10 @@ namespace Desktop.Ping
 
         private IEnumerable<IDimensionValue> GetStatsValue(IPAddress pingResponseTargetIpAddress, IPingStats stats)
         {
-            var averageSuccessRate = _pingStatsUtil.GetAverageSuccessRate(stats.StatusHistory);
+            var averageSuccessRate = Hash(_pingStatsUtil.GetAverageSuccessRate(stats.StatusHistory));
             var averageDimensionName = _dimensionKeyFactory.GetOrCreate("Average Success Rate");
-            return new[] {new DimensionValue(averageDimensionName, averageSuccessRate),};
+            var scopedAverageDimensionName = _dimensionKeyFactory.GetOrCreate($"Average Success Rate {averageSuccessRate}");
+            return new[] { new DimensionValue(averageDimensionName, averageSuccessRate), new DimensionValue(scopedAverageDimensionName, averageSuccessRate) };
         }
 
         private IEnumerable<IDimensionValue> GetPingResponseValues(IPingResponse pingResponse,
@@ -49,8 +50,8 @@ namespace Desktop.Ping
         {
             var statusFlagDimension = _dimensionKeyUtil.GetStatusFlag(pingResponse.TargetIpAddress);
             var dimensionKey = _dimensionKeyFactory.GetOrCreate(statusFlagDimension);
-            const double success = (1+7)*13;
-            const double failure = (0+7)*13;
+            const double success = (1.0 + 7) * 13;
+            const double failure = (0.0 + 7) * 13;
             var statusFlagValue = _pingResponseUtil.IsSuccess(pingResponse.Status) ? success : failure;
             var statusDimensionValue = new DimensionValue(dimensionKey, statusFlagValue);
             return statusDimensionValue;
@@ -60,12 +61,17 @@ namespace Desktop.Ping
         {
             var dimensionKey = _dimensionKeyFactory.GetOrCreate("Ip Address");
             var intValue = pingResponse.TargetIpAddress.GetHashCode();
-            var ipValue = HashInt(intValue);
+            var ipValue = Hash(intValue) % 1000;
             var ipDimensionValue = new DimensionValue(dimensionKey, ipValue);
             return ipDimensionValue;
         }
 
-        private double HashInt(int value)
+        private double Hash(int value)
+        {
+            return (value + 7.0) * 13; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
+        }
+
+        private double Hash(double value)
         {
             return (value + 7.0) * 13; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
         }

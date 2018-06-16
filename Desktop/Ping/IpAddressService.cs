@@ -10,7 +10,7 @@ namespace Desktop.Ping
     {
         public IpAddressService()
         {
-            var ipAddresses = Enumerable.Range(1, 255).Select(n => GetAddress(n)); //new[] { IPAddress.Parse("192.168.1.89") }; 
+            var ipAddresses = Enumerable.Range(1, 255).Select(n => GetAddress(n));  //new[] { IPAddress.Parse("192.168.1.89") };
             IpAddressObservable = new BehaviorSubject<IEnumerable<IPAddress>>(ipAddresses);
         }
 

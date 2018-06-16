@@ -39,9 +39,19 @@ namespace Desktop.Target
             {
                 if (value == _address) return;
                 _address = value;
+                var bytes = _address.GetAddressBytes();
+                Octet3 = bytes[3];
+                Octet2 = bytes[2];
+                Octet1 = bytes[1];
+                Octet0 = bytes[0];
                 OnPropertyChanged();
             }
         }
+
+        public int Octet0{get;private set;}
+        public int Octet1{get;private set;}
+        public int Octet2{get;private set;}
+        public int Octet3{get;private set;}
 
         public bool StatusSuccess
         {
