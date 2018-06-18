@@ -27,11 +27,19 @@ namespace Desktop.Ping
         public IVector GetVector(IPingResponse pingResponse, IPingStats stats)
         {
             var pingResponseValues = GetPingResponseValues(pingResponse, GetStatusDimension);
-            var pingResponseValueX = GetPingResponseValuesX(pingResponse,GetAddressDimensions, r=>GetStatsValue(r.TargetIpAddress, stats));
+            var pingResponseValueX = GetPingResponseValuesX(pingResponse,GetAddressDimensions, r=>GetStatsValue(r.TargetIpAddress, stats), pr=>GetRttDimension(pr.RoundTripTime));
             //var statValues = GetStatsValue(pingResponse.TargetIpAddress, stats);
             //var addressValues = GetAddressDimensions(pingResponse);
             var dimensionValues = pingResponseValues.Concat(pingResponseValueX);
             return new Vector.Vector(dimensionValues);
+        }
+
+        private IEnumerable<IDimensionValue> GetRttDimension(TimeSpan roundTripTime)
+        {
+            var rtt = Hash(roundTripTime.TotalMilliseconds);
+            var rttDimensionName = _dimensionKeyFactory.GetOrCreate("Round Trip Time");
+            var rttValueDimensionName = _dimensionKeyFactory.GetOrCreate($"Round Trip Time {roundTripTime.ToString()}");
+            return new[] {new DimensionValue(rttDimensionName, rtt), new DimensionValue(rttValueDimensionName, rtt),};
         }
 
         private IEnumerable<IDimensionValue> GetStatsValue(IPAddress pingResponseTargetIpAddress, IPingStats stats)
