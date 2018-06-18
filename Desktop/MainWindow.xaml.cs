@@ -2,6 +2,7 @@
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Data;
+using Desktop.Target;
 
 namespace Desktop
 {
@@ -10,22 +11,29 @@ namespace Desktop
     /// </summary>
     public partial class MainWindow : Window
     {
-        private CollectionViewSource _targetViewSource;
-
         public MainWindow(MainWindowViewmodel mainWindowViewmodel)
         {
             DataContext = mainWindowViewmodel;
             InitializeComponent();
-            _targetViewSource = (CollectionViewSource)Resources["TargetView"];
             mainWindowViewmodel.ResortObservable.Subscribe(t =>
             {
                 Dispatcher.InvokeAsync(() =>
                 {
-                    _targetViewSource.View.Refresh();
+                    CollectionViewSource.GetDefaultView(TargetListView.ItemsSource).Refresh();
                 });
                 
             });
+        }
 
+        private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            CollectionViewSource.GetDefaultView(TargetListView.ItemsSource).Filter = TargetFilter;
+        }
+
+        private bool TargetFilter(object obj)
+        {
+            var target = (TargetDatamodel) obj;
+            return target.ShowUntil.HasValue;
         }
     }
 }

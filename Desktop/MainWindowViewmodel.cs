@@ -31,7 +31,8 @@ namespace Desktop
 
         public ObservableCollection<TargetDatamodel> TargetDatamodels { get; }
         private readonly IDictionary<IPAddress, PingState> _targetDatamodels;
-        private IDictionary<IPAddress, PingStats> _stats;
+        private readonly IDictionary<IPAddress, PingStats> _stats;
+        private static readonly TimeSpan TimeToShowOddTargets = TimeSpan.FromSeconds(5);
         public IObservable<int> ResortObservable { get; }
 
         public MainWindowViewmodel(IPingTimer pingTimer,
@@ -78,6 +79,16 @@ namespace Desktop
                             targetDatamodelX.StatusSuccess = GetStatusSuccess(pingResponse.Status);
                             var change = _vectorComparer.Compare(pingState.Previous, pingVector);
                             targetDatamodelX.Change = change;
+
+                            if (targetDatamodelX.Change > 0.008)
+                            {
+                                targetDatamodelX.ShowUntil = DateTime.Now.Add(TimeToShowOddTargets);
+                            }
+
+                            if (targetDatamodelX.ShowUntil <= DateTime.Now)
+                            {
+                                targetDatamodelX.ShowUntil = null;
+                            }
 
                             pingState.Previous = pingVector;
                         }

@@ -12,7 +12,8 @@ namespace Desktop.Target
         private bool _statusSuccess;
         private TimeSpan _roundTripTime;
         private double _change;
-        
+        private DateTime? _showUntil;
+
         public TargetDatamodel(IPAddress address, bool statusSuccess, TimeSpan roundTripTime)
         {
             Address = address;
@@ -71,6 +72,17 @@ namespace Desktop.Target
             {
                 if (value == _roundTripTime) return;
                 _roundTripTime = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public DateTime? ShowUntil
+        {
+            get => _showUntil;
+            set
+            {
+                if (value.Equals(_showUntil)) return;
+                _showUntil = value;
                 OnPropertyChanged();
             }
         }
