@@ -24,7 +24,7 @@ namespace Desktop.Ping
         public IVector GetVector(IPingResponse pingResponse, IPingStats stats)
         {
             var pingResponseValues = GetPingResponseValues(pingResponse, GetStatusDimension);
-            var pingResponseValueX = GetPingResponseValuesX(pingResponse,GetAddressDimensions, r=>GetStatsValue(r.TargetIpAddress, stats), pr=>GetRttDimension(pr.RoundTripTime));
+            var pingResponseValueX = GetPingResponseValuesX(pingResponse, GetAddressDimensions, r => GetStatsValue(r.TargetIpAddress, stats), pr => GetRttDimension(pr.RoundTripTime));
             var dimensionValues = pingResponseValues.Concat(pingResponseValueX);
             return new Vector.Vector(dimensionValues);
         }
@@ -44,26 +44,62 @@ namespace Desktop.Ping
             var averageSuccessRate = Hash(_pingStatsUtil.GetAverageSuccessRate(stats.StatusHistory));
             var scopedAverageDimensionName = _dimensionKeyFactory.GetOrCreate($"Average Success Rate {averageSuccessRate}");
             var avg25ValueName = _dimensionKeyFactory.GetOrCreate($"Average 25 {stats.Average25}");
-            var avg25Value = Hash(stats.Average25)*1000;
+            var avg25Value = Hash(stats.Average25) * 1000;
             var nullableStatus = stats.StatusHistory.Cast<bool?>();
-            var lastStatus = nullableStatus.LastOrDefault() ?? true;
-            var lastSuccess = Hash(lastStatus);
-            var lastSuccessDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Success {lastSuccess}");
-            var lastFailure = Hash(!lastStatus);
-            var lastFailureDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Failure {lastFailure}");
+            var statusHistoryDimensionValues = GetStatusHistoryDimensionValues(nullableStatus);
             return new[] {
                 new DimensionValue(scopedAverageDimensionName, averageSuccessRate),
-                new DimensionValue(avg25ValueName, avg25Value),
-                new DimensionValue(lastSuccessDimensionName, Hash(lastSuccess)),
-                new DimensionValue(lastFailureDimensionName, Hash(lastFailure)),
-            };
+                new DimensionValue(avg25ValueName, avg25Value)
+            }.Concat(statusHistoryDimensionValues);
+        }
+
+        private IEnumerable<IDimensionValue> GetStatusHistoryDimensionValues(
+            IEnumerable<bool?> nullableStatus)
+        {
+            var statusSuccesses = nullableStatus
+                .Select(nb => nb ?? true);
+            var successes = statusSuccesses as bool[] ?? statusSuccesses.ToArray();
+            var successCount = successes.Count(b => b);
+            var failureCount = successes.Count(b => !b);
+            var successDims = Enumerable.Range(0, successCount).Select(i =>
+            {
+                var n = _dimensionKeyFactory.GetOrCreate($"Has {i} successes");
+                return new DimensionValue(n, Hash(i));
+            });
+            var failureDims = Enumerable.Range(0, failureCount).Select(i =>
+            {
+                var n = _dimensionKeyFactory.GetOrCreate($"Has {i} failures");
+                return new DimensionValue(n, Hash(i));
+            });
+            return successes
+                .SelectMany((b, i) => StatusHistoryDimensionValues(i, b))
+                .Concat(
+                    new[]
+                    {
+                        new DimensionValue(_dimensionKeyFactory.GetOrCreate($"Success Count {successCount}"), Hash(successCount)),
+                        new DimensionValue(_dimensionKeyFactory.GetOrCreate($"Failure Count {failureCount}"), Hash(failureCount)),
+                    }
+                    )
+                .Concat(successDims)
+                .Concat(failureDims);
+        }
+
+        private IEnumerable<IDimensionValue> StatusHistoryDimensionValues(int index, bool lastStatus)
+        {
+            var lastSuccess = Hash(lastStatus);
+            var lastSuccessDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Success {index} {lastSuccess}");
+            var lsDimensionValue = new DimensionValue(lastSuccessDimensionName, Hash(lastSuccess));
+            var lastFailure = Hash(!lastStatus);
+            var lastFailureDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Failure {index} {lastFailure}");
+            var lfDimensionValue = new DimensionValue(lastFailureDimensionName, Hash(lastFailure));
+            return new[] { lsDimensionValue, lfDimensionValue };
         }
 
         private double Hash(DateTime timeStamp)
         {
             var diff = DateTime.Now - timeStamp;
             var longValue = diff.Ticks;
-            var doubleValue = (double) longValue;
+            var doubleValue = (double)longValue;
             return Hash(doubleValue);
         }
 
@@ -76,7 +112,7 @@ namespace Desktop.Ping
         private IEnumerable<IDimensionValue> GetPingResponseValuesX(IPingResponse pingResponse,
             params Func<IPingResponse, IEnumerable<IDimensionValue>>[] valuesFuncs)
         {
-            return valuesFuncs.Select(f => f(pingResponse)).SelectMany(f=>f);
+            return valuesFuncs.Select(f => f(pingResponse)).SelectMany(f => f);
         }
 
         private DimensionValue GetStatusDimension(IPingResponse pingResponse)
@@ -92,7 +128,7 @@ namespace Desktop.Ping
         {
             var intValue = pingResponse.TargetIpAddress.GetHashCode();
             var ipValue = Hash(intValue);
-            
+
             var ipDimensionKey = _dimensionKeyFactory.GetOrCreate($"Ip Address {pingResponse.TargetIpAddress}");
             var ipSpecDimensionValue = new DimensionValue(ipDimensionKey, ipValue);
 
