@@ -181,10 +181,12 @@ namespace Desktop
 
     public class PingStatsUtil
     {
+        private const int MaxHistoryCount = 55;
+
         public void AddStatus(IList<bool> statusHistory, bool status)
         {
             statusHistory.Add(status);
-            if (statusHistory.Count > 5)
+            if (statusHistory.Count > MaxHistoryCount)
             {
                 statusHistory.RemoveAt(0);
             }
