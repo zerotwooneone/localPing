@@ -2,6 +2,7 @@
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Threading;
 using Desktop.Target;
 
 namespace Desktop
@@ -20,7 +21,7 @@ namespace Desktop
                 Dispatcher.InvokeAsync(() =>
                 {
                     CollectionViewSource.GetDefaultView(TargetListView.ItemsSource).Refresh();
-                });
+                }, DispatcherPriority.ApplicationIdle);
                 
             });
         }

@@ -18,21 +18,21 @@
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <TextBlock Text="{Binding Address}"
+        <TextBlock Text="{Binding Address, Mode=OneWay}"
                    Grid.Column="0"
                    Style="{StaticResource ColumnTextblock}"></TextBlock>
         <TextBlock Text="Success"
-            Visibility="{Binding StatusSuccess, Converter={StaticResource BooleanToVisibilityConverter}}"
+            Visibility="{Binding StatusSuccess, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
                    Grid.Column="1"
                    Style="{StaticResource ColumnTextblock}"></TextBlock>
         <TextBlock Text="Error"
-                   Visibility="{Binding StatusSuccess, Converter={StaticResource BooleanToHiddenConverter}}"
+                   Visibility="{Binding StatusSuccess, Converter={StaticResource BooleanToHiddenConverter}, Mode=OneWay}"
                    Grid.Column="1"
                    Style="{StaticResource ColumnTextblock}"></TextBlock>
-        <TextBlock Text="{Binding RoundTripTime,StringFormat=ss\\.fff}"
+        <TextBlock Text="{Binding RoundTripTime,StringFormat=ss\\.fff, Mode=OneWay}"
                    Grid.Column="2"
                    Style="{StaticResource ColumnTextblock}"></TextBlock>
-        <TextBlock Text="{Binding Change}"
+        <TextBlock Text="{Binding Change, Mode=OneWay}"
                    Grid.Column="3"
                    Style="{StaticResource ColumnTextblock}"></TextBlock>
     </Grid>

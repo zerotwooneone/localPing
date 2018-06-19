@@ -33,7 +33,7 @@
             </ListView.ItemsPanel>
             <ListView.ItemTemplate>
                 <ItemContainerTemplate>
-                    <target:TargetView DataContext="{Binding}"></target:TargetView>
+                    <target:TargetView DataContext="{Binding Mode=OneWay}"></target:TargetView>
                 </ItemContainerTemplate>
             </ListView.ItemTemplate>
         </ListView>
