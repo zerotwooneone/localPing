@@ -45,13 +45,17 @@ namespace Desktop.Ping
             var scopedAverageDimensionName = _dimensionKeyFactory.GetOrCreate($"Average Success Rate {averageSuccessRate}");
             var avg25ValueName = _dimensionKeyFactory.GetOrCreate($"Average 25 {stats.Average25}");
             var avg25Value = Hash(stats.Average25)*1000;
-            var lastSuccessDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Success {stats.LastSuccess}");
-            var lastFailureDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Failure {stats.LastFailure}");
+            var nullableStatus = stats.StatusHistory.Cast<bool?>();
+            var lastStatus = nullableStatus.LastOrDefault() ?? true;
+            var lastSuccess = Hash(lastStatus);
+            var lastSuccessDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Success {lastSuccess}");
+            var lastFailure = Hash(!lastStatus);
+            var lastFailureDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Failure {lastFailure}");
             return new[] {
                 new DimensionValue(scopedAverageDimensionName, averageSuccessRate),
                 new DimensionValue(avg25ValueName, avg25Value),
-                new DimensionValue(lastSuccessDimensionName, Hash(stats.LastSuccess)),
-                new DimensionValue(lastFailureDimensionName, Hash(stats.LastFailure)),
+                new DimensionValue(lastSuccessDimensionName, Hash(lastSuccess)),
+                new DimensionValue(lastFailureDimensionName, Hash(lastFailure)),
             };
         }
 
@@ -77,10 +81,8 @@ namespace Desktop.Ping
 
         private DimensionValue GetStatusDimension(IPingResponse pingResponse)
         {
-            const double success = (1.0 + 7) * 13;
-            const double failure = (0.0 + 7) * 13;
             var isSuccess = _pingResponseUtil.IsSuccess(pingResponse.Status);
-            var statusFlagValue = isSuccess ? success : failure;
+            var statusFlagValue = Hash(isSuccess);
             var dimensionKey = _dimensionKeyFactory.GetOrCreate($"status flag {isSuccess}");
             var statusDimensionValue = new DimensionValue(dimensionKey, statusFlagValue);
             return statusDimensionValue;
@@ -108,6 +110,14 @@ namespace Desktop.Ping
         private double Hash(double value)
         {
             return ((value + 7.0) * 13) % Modulus; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
+        }
+
+        private double Hash(bool value)
+        {
+            const double success = (1.0 + 7) * 13;
+            const double failure = (0.0 + 7) * 13;
+            var result = value ? success : failure;
+            return result;
         }
     }
 }

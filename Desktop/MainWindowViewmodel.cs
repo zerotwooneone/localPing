@@ -132,17 +132,7 @@ namespace Desktop
             }
             var isSuccess = _pingResponseUtil.IsSuccess(pingResponse.Status);
             _pingStatsUtil.AddStatus(stats.StatusHistory, isSuccess);
-            if (isSuccess)
-            {
-                stats.LastSuccess = DateTime.Now;
-            }
-            else
-            {
-                stats.LastFailure = DateTime.Now;
-            }
-
             var v = isSuccess ? 1.0 : 0.0;
-            var prev = stats.Average25;
             stats.Average25 = ((stats.Average25 * stats.Average25Count) + v) / (stats.Average25Count + 1);
             if (stats.Average25Count < 25)
             {
@@ -177,9 +167,6 @@ namespace Desktop
         public int Average25Count { get; set; }
 
         IEnumerable<bool> IPingStats.StatusHistory => StatusHistory;
-        public DateTime LastSuccess { get; set; }
-        public DateTime LastFailure { get; set; }
-
         public PingStats()
         {
             StatusHistory = new List<bool>();
@@ -190,8 +177,6 @@ namespace Desktop
     {
         IEnumerable<bool> StatusHistory { get; }
         double Average25 { get; }
-        DateTime LastSuccess { get; }
-        DateTime LastFailure { get; }
     }
 
     public class PingStatsUtil
