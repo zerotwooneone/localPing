@@ -45,10 +45,22 @@ namespace Desktop.Ping
             var scopedAverageDimensionName = _dimensionKeyFactory.GetOrCreate($"Average Success Rate {averageSuccessRate}");
             var avg25ValueName = _dimensionKeyFactory.GetOrCreate($"Average 25 {stats.Average25}");
             var avg25Value = Hash(stats.Average25)*1000;
+            var lastSuccessDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Success {stats.LastSuccess}");
+            var lastFailureDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Failure {stats.LastFailure}");
             return new[] {
                 new DimensionValue(scopedAverageDimensionName, averageSuccessRate),
-                new DimensionValue(avg25ValueName, avg25Value)
+                new DimensionValue(avg25ValueName, avg25Value),
+                new DimensionValue(lastSuccessDimensionName, Hash(stats.LastSuccess)),
+                new DimensionValue(lastFailureDimensionName, Hash(stats.LastFailure)),
             };
+        }
+
+        private double Hash(DateTime timeStamp)
+        {
+            var diff = DateTime.Now - timeStamp;
+            var longValue = diff.Ticks;
+            var doubleValue = (double) longValue;
+            return Hash(doubleValue);
         }
 
         private IEnumerable<IDimensionValue> GetPingResponseValues(IPingResponse pingResponse,
