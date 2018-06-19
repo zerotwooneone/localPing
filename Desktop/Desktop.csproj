@@ -71,8 +71,6 @@
     <Compile Include="Dispatcher\IDispatcherAccessor.cs" />
     <Compile Include="Dispatcher\DispatcherModule.cs" />
     <Compile Include="PingState.cs" />
-    <Compile Include="Ping\DimensionKeyUtil.cs" />
-    <Compile Include="Ping\IDimensionKeyUtil.cs" />
     <Compile Include="Ping\IpAddressService.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Target\TargetDatamodel.cs" />

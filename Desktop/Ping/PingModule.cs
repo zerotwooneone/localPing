@@ -17,7 +17,6 @@ namespace Desktop.Ping
             Bind<IVectorInputConversionService<IEnumerable<IPingResponse>>>()
                 .To<VectorInputConversionService<IEnumerable<IPingResponse>>>();
             Bind<IIpAddressService>().To<IpAddressService>();
-            Bind<IDimensionKeyUtil>().To<DimensionKeyUtil>();
             Bind<IPingVectorFactory>().To<PingVectorFactory>();
         }
     }

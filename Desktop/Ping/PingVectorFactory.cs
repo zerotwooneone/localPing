@@ -10,17 +10,14 @@ namespace Desktop.Ping
     public class PingVectorFactory : IPingVectorFactory
     {
         private readonly IDimensionKeyFactory _dimensionKeyFactory;
-        private readonly IDimensionKeyUtil _dimensionKeyUtil;
         private readonly IPingResponseUtil _pingResponseUtil;
         private readonly PingStatsUtil _pingStatsUtil;
 
         public PingVectorFactory(IDimensionKeyFactory dimensionKeyFactory,
-            IDimensionKeyUtil dimensionKeyUtil,
             IPingResponseUtil pingResponseUtil,
             PingStatsUtil pingStatsUtil)
         {
             _dimensionKeyFactory = dimensionKeyFactory;
-            _dimensionKeyUtil = dimensionKeyUtil;
             _pingResponseUtil = pingResponseUtil;
             _pingStatsUtil = pingStatsUtil;
         }
@@ -28,8 +25,6 @@ namespace Desktop.Ping
         {
             var pingResponseValues = GetPingResponseValues(pingResponse, GetStatusDimension);
             var pingResponseValueX = GetPingResponseValuesX(pingResponse,GetAddressDimensions, r=>GetStatsValue(r.TargetIpAddress, stats), pr=>GetRttDimension(pr.RoundTripTime));
-            //var statValues = GetStatsValue(pingResponse.TargetIpAddress, stats);
-            //var addressValues = GetAddressDimensions(pingResponse);
             var dimensionValues = pingResponseValues.Concat(pingResponseValueX);
             return new Vector.Vector(dimensionValues);
         }
@@ -37,22 +32,21 @@ namespace Desktop.Ping
         private IEnumerable<IDimensionValue> GetRttDimension(TimeSpan roundTripTime)
         {
             var rtt = Hash(roundTripTime.TotalMilliseconds);
-            var rttDimensionName = _dimensionKeyFactory.GetOrCreate("Round Trip Time");
             var rttValueDimensionName = _dimensionKeyFactory.GetOrCreate($"Round Trip Time {roundTripTime.ToString()}");
-            return new[] {new DimensionValue(rttDimensionName, rtt), new DimensionValue(rttValueDimensionName, rtt),};
+            return new[]
+            {
+                new DimensionValue(rttValueDimensionName, rtt),
+            };
         }
 
         private IEnumerable<IDimensionValue> GetStatsValue(IPAddress pingResponseTargetIpAddress, IPingStats stats)
         {
             var averageSuccessRate = Hash(_pingStatsUtil.GetAverageSuccessRate(stats.StatusHistory));
-            var averageDimensionName = _dimensionKeyFactory.GetOrCreate("Average Success Rate");
             var scopedAverageDimensionName = _dimensionKeyFactory.GetOrCreate($"Average Success Rate {averageSuccessRate}");
-            var avg25Name = _dimensionKeyFactory.GetOrCreate("Average 25");
             var avg25ValueName = _dimensionKeyFactory.GetOrCreate($"Average 25 {stats.Average25}");
             var avg25Value = Hash(stats.Average25)*1000;
-            return new[] { new DimensionValue(averageDimensionName, averageSuccessRate), 
+            return new[] {
                 new DimensionValue(scopedAverageDimensionName, averageSuccessRate),
-                new DimensionValue(avg25Name, avg25Value),
                 new DimensionValue(avg25ValueName, avg25Value)
             };
         }
@@ -71,26 +65,27 @@ namespace Desktop.Ping
 
         private DimensionValue GetStatusDimension(IPingResponse pingResponse)
         {
-            var statusFlagDimension = _dimensionKeyUtil.GetStatusFlag(pingResponse.TargetIpAddress);
-            var dimensionKey = _dimensionKeyFactory.GetOrCreate(statusFlagDimension);
             const double success = (1.0 + 7) * 13;
             const double failure = (0.0 + 7) * 13;
-            var statusFlagValue = _pingResponseUtil.IsSuccess(pingResponse.Status) ? success : failure;
+            var isSuccess = _pingResponseUtil.IsSuccess(pingResponse.Status);
+            var statusFlagValue = isSuccess ? success : failure;
+            var dimensionKey = _dimensionKeyFactory.GetOrCreate($"status flag {isSuccess}");
             var statusDimensionValue = new DimensionValue(dimensionKey, statusFlagValue);
             return statusDimensionValue;
         }
 
         private IEnumerable<IDimensionValue> GetAddressDimensions(IPingResponse pingResponse)
         {
-            var dimensionKey = _dimensionKeyFactory.GetOrCreate("Ip Address");
             var intValue = pingResponse.TargetIpAddress.GetHashCode();
             var ipValue = Hash(intValue);
-            var ipDimensionValue = new DimensionValue(dimensionKey, ipValue);
-
+            
             var ipDimensionKey = _dimensionKeyFactory.GetOrCreate($"Ip Address {pingResponse.TargetIpAddress}");
             var ipSpecDimensionValue = new DimensionValue(ipDimensionKey, ipValue);
 
-            return new[] { ipDimensionValue, ipSpecDimensionValue };
+            return new[]
+            {
+                ipSpecDimensionValue
+            };
         }
         private const double Modulus = 1000;
         private double Hash(int value)
