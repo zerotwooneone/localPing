@@ -34,7 +34,7 @@ namespace Desktop
         private bool TargetFilter(object obj)
         {
             var target = (TargetDatamodel) obj;
-            return target.ShowUntil.HasValue;
+            return target.ShowUntil.HasValue || target.Equals(TargetListView.SelectedItem);
         }
     }
 }
