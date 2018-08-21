@@ -93,7 +93,7 @@ namespace Desktop.Ping
             var failurePct = 1 - successPct;
             successPct *= 100;
             failurePct *= 100;
-            var pctDims = Enumerable.Range(0, 100).Select(i =>
+            var pctDims = Enumerable.Range(0, 10).Select(i =>
             {
                 var pct = i * 10;
                 bool isGreaterThanSuccessPct = successPct > pct;
