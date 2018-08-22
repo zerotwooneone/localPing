@@ -10,24 +10,24 @@ namespace Desktop.Vector
         {
             //v1 = NormalizeOrDefault(v1);
             //v2 = NormalizeOrDefault(v2);
-            var v1Values = v1.DimensionValues.ToDictionary(dv => dv.DimensionKey);
+            Dictionary<IDimensionKey, IDimensionValue> v1Values = v1.DimensionValues.ToDictionary(dv => dv.DimensionKey);
             double dotProduct = 0;
             double squaredV1Sum = 0;
             double squaredV2Sum = 0;
-            var v1DimensionKeys = v1.DimensionValues.ToDictionary(dv => dv.DimensionKey);
-            foreach (var v2DimensionValue in v2.DimensionValues)
+            Dictionary<IDimensionKey, IDimensionValue> v1DimensionKeys = v1.DimensionValues.ToDictionary(dv => dv.DimensionKey);
+            foreach (IDimensionValue v2DimensionValue in v2.DimensionValues)
             {
-                var vDim1Value = v1Values.TryGetValue(v2DimensionValue.DimensionKey, out var v1v) ? v1v : null;
+                IDimensionValue vDim1Value = v1Values.TryGetValue(v2DimensionValue.DimensionKey, out IDimensionValue v1v) ? v1v : null;
                 v1DimensionKeys.Remove(v2DimensionValue.DimensionKey);
                 v1Values.Remove(v2DimensionValue.DimensionKey);
-                var v1Value = vDim1Value == null ? 0 : vDim1Value.Value;
-                var v2Value = v2DimensionValue.Value;
+                double v1Value = vDim1Value?.Value ?? 0.0;
+                double v2Value = v2DimensionValue.Value;
                 AddDimension(v1Value, v2Value, ref dotProduct, ref squaredV1Sum, ref squaredV2Sum);
             }
 
-            foreach(var v1Value in v1DimensionKeys.Values.Select(dv=>dv.Value))
+            foreach (double v1Value in v1DimensionKeys.Values.Select(dv => dv.Value))
             {
-                var v2Value = 0.0;
+                const double v2Value = 0.0;
                 AddDimension(v1Value, v2Value, ref dotProduct, ref squaredV1Sum, ref squaredV2Sum);
             }
 
@@ -36,8 +36,8 @@ namespace Desktop.Vector
                 return 0;
             }
 
-            var v1Length = Math.Sqrt(squaredV1Sum);
-            var v2Length = Math.Sqrt(squaredV2Sum);
+            double v1Length = Math.Sqrt(squaredV1Sum);
+            double v2Length = Math.Sqrt(squaredV2Sum);
 
             double lengthProduct;
 
@@ -52,7 +52,7 @@ namespace Desktop.Vector
                 return 0;
             }
 
-            var frac = dotProduct / lengthProduct;
+            double frac = dotProduct / lengthProduct;
 
             const double fracTollerance = 0.000000000000001;
             if (Math.Abs(frac - 1) < fracTollerance)
@@ -60,32 +60,32 @@ namespace Desktop.Vector
                 return 0;
             }
 
-            var arcCos = Math.Acos(frac);
+            double arcCos = Math.Acos(frac);
 
             return arcCos;
         }
 
         public void AddDimension(double v1, double v2, ref double dotProduct, ref double squaredV1Sum, ref double squaredV2Sum)
         {
-            var product = v1 * v2;
+            double product = v1 * v2;
 
-                dotProduct += product;
+            dotProduct += product;
 
-                squaredV1Sum += Math.Pow(v1, 2);
-                if (double.IsInfinity(squaredV1Sum))
-                {
-                    throw new OverflowException();
-                }
-                squaredV2Sum += Math.Pow(v2, 2);
-                if (double.IsInfinity(squaredV2Sum))
-                {
-                    throw new OverflowException();
-                }
+            squaredV1Sum += Math.Pow(v1, 2);
+            if (double.IsInfinity(squaredV1Sum))
+            {
+                throw new OverflowException();
+            }
+            squaredV2Sum += Math.Pow(v2, 2);
+            if (double.IsInfinity(squaredV2Sum))
+            {
+                throw new OverflowException();
+            }
         }
 
         public static IVector NormalizeOrDefault(IVector v1)
         {
-            var magnitude = GetMagnitude(v1);
+            double magnitude = GetMagnitude(v1);
             /* Check that we are not attempting to normalize a vector of magnitude 1;
                if we are then return v(0,0,0) */
             if (magnitude == 0)
@@ -140,13 +140,13 @@ namespace Desktop.Vector
         {
             // find the inverse of the vectors magnitude
             double inverse = 1 / magnitude;
-            var dimVals = GetDimensionValues(v1, d => d * inverse); // multiply each component by the inverse of the magnitude
+            IEnumerable<IDimensionValue> dimVals = GetDimensionValues(v1, d => d * inverse); // multiply each component by the inverse of the magnitude
             return new Vector(dimVals);
         }
 
         private static IVector GetOrigin(IVector v1)
         {
-            var dimVals = GetDimensionValues(v1, d => 0);
+            IEnumerable<IDimensionValue> dimVals = GetDimensionValues(v1, d => 0);
             return new Vector(dimVals);
         }
 
@@ -154,16 +154,16 @@ namespace Desktop.Vector
         {
             return v1.DimensionValues.Select(dv =>
             {
-                var value = convert == null ? dv.Value : convert(dv.Value);
-                var result = new DimensionValue(dv.DimensionKey, value);
+                double value = convert == null ? dv.Value : convert(dv.Value);
+                DimensionValue result = new DimensionValue(dv.DimensionKey, value);
                 return result;
             });
         }
 
         public static double GetMagnitude(IVector v1)
         {
-            var valuesSquared = v1.DimensionValues.Select(dv => dv.Value * dv.Value);
-            var sumOfSquares = valuesSquared.Sum();
+            IEnumerable<double> valuesSquared = v1.DimensionValues.Select(dv => dv.Value * dv.Value);
+            double sumOfSquares = valuesSquared.Sum();
             return Math.Sqrt(sumOfSquares);
         }
     }

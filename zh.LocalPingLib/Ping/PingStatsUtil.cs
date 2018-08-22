@@ -6,7 +6,7 @@ namespace zh.LocalPingLib.Ping
 {
     public class PingStatsUtil
     {
-        private const int MaxHistoryCount = 55;
+        public const int MaxHistoryCount = 55;
 
         public void AddStatus(IList<bool> statusHistory, bool status)
         {

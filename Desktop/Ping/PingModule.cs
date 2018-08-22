@@ -12,7 +12,7 @@ namespace Desktop.Ping
             Bind<IPingTimer>().To<PingTimer>();
             Bind<IPingTimerConfig>().To<Config>();
             Bind<IPingCollectionVectorFactory>().To<PingCollectionVectorFactory>();
-            Bind<IDimensionKeyFactory>().To<DimensionKeyFactory>();
+            Bind<IDimensionKeyFactory>().To<DimensionKeyFactory>().InSingletonScope();
             Bind<IVectorInputConversionService<IPingResponse>>().To<VectorInputConversionService<IPingResponse>>();
             Bind<IVectorInputConversionService<IEnumerable<IPingResponse>>>()
                 .To<VectorInputConversionService<IEnumerable<IPingResponse>>>();

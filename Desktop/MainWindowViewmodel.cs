@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Desktop.Dispatcher;
+using Desktop.Target;
+using Desktop.Vector;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,9 +12,6 @@ using System.Net.NetworkInformation;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using Desktop.Dispatcher;
-using Desktop.Target;
-using Desktop.Vector;
 using zh.LocalPingLib.Ping;
 
 namespace Desktop
@@ -41,7 +41,8 @@ namespace Desktop
             IIpAddressService ipAddressService,
             IDispatcherAccessor dispatcherAccessor,
             PingStatsUtil pingStatsUtil,
-            IPingResponseUtil pingResponseUtil)
+            IPingResponseUtil pingResponseUtil,
+            IDimensionKeyFactory dimensionKeyFactory)
         {
             _pingTimer = pingTimer;
             _pingService = pingService;
@@ -54,8 +55,8 @@ namespace Desktop
             IDisposable pingResponseSubscription = null;
             _targetDatamodels = new ConcurrentDictionary<IPAddress, PingState>();
             _stats = new ConcurrentDictionary<IPAddress, PingStats>();
-            var d = dispatcherAccessor.GetDispatcher();
-            var resortSubject = new Subject<int>();
+            System.Windows.Threading.Dispatcher d = dispatcherAccessor.GetDispatcher();
+            Subject<int> resortSubject = new Subject<int>();
             ResortObservable = resortSubject;
 
             ipAddressService.IpAddressObservable.Subscribe(ipAddresses =>
@@ -65,17 +66,19 @@ namespace Desktop
                     pingTimerObservable.Select(l => _pingService.Ping(ipAddresses));
                 pingResponseSubscription = pingResponseObservable.Subscribe(async pingResponseTasks =>
                 {
-                    var responses = await Task.WhenAll(pingResponseTasks);
-                    var vectors = responses.Select(pingResponse =>
+                    IPingResponse[] responses = await Task.WhenAll(pingResponseTasks);
+                    IVector[] vectors = responses.Select(pingResponse =>
                     {
-                        var stats = GetUpdatedStats(pingResponse);
-                        var pingVector = _pingVectorFactory.GetVector(pingResponse, stats);
-                        if (_targetDatamodels.TryGetValue(pingResponse.TargetIpAddress, out var pingState))
+                        IPingStats stats = GetUpdatedStats(pingResponse);
+                        IVector pingVector = _pingVectorFactory.GetVector(pingResponse, stats);
+                        if (_targetDatamodels.TryGetValue(pingResponse.TargetIpAddress, out PingState pingState))
                         {
-                            var targetDatamodelX = pingState.TargetDatamodel;
+                            TargetDatamodel targetDatamodelX = pingState.TargetDatamodel;
                             targetDatamodelX.RoundTripTime = pingResponse.RoundTripTime;
                             targetDatamodelX.StatusSuccess = GetStatusSuccess(pingResponse.Status);
-                            var change = _vectorComparer.Compare(pingState.Previous, pingVector);
+                            var boring = PingVectorFactory.GetVectorInternal(new PingResponse(IPAddress.Loopback, TimeSpan.Zero, IPStatus.DestinationHostUnreachable, IPAddress.Loopback),
+                                new PingStats { Average25 = 0, Average25Count = 25, StatusHistory = new bool[PingStatsUtil.MaxHistoryCount] }, _pingResponseUtil, dimensionKeyFactory, _pingStatsUtil);
+                            double change = _vectorComparer.Compare(boring, pingVector);
                             targetDatamodelX.Change = change;
 
                             if (targetDatamodelX.Change > 0.008)
@@ -92,7 +95,7 @@ namespace Desktop
                         }
                         else
                         {
-                            var targetDatamodel = new TargetDatamodel(address: pingResponse.TargetIpAddress,
+                            TargetDatamodel targetDatamodel = new TargetDatamodel(address: pingResponse.TargetIpAddress,
                                 statusSuccess: GetStatusSuccess(pingResponse.Status),
                                 roundTripTime: pingResponse.RoundTripTime);
                             _targetDatamodels.Add(pingResponse.TargetIpAddress, new PingState { TargetDatamodel = targetDatamodel, Previous = pingVector });
@@ -101,7 +104,7 @@ namespace Desktop
 
                         return pingVector;
                     }).ToArray();
-                    var currentVector = _pingCollectionVectorFactory.GetVector(vectors);
+                    IVector currentVector = _pingCollectionVectorFactory.GetVector(vectors);
                     if (_previousVector != null)
                     {
                         //Log($"diff:{_vectorComparer.Compare(_previousVector, currentVector)}");
@@ -118,8 +121,8 @@ namespace Desktop
         private IPingStats GetUpdatedStats(IPingResponse pingResponse)
         {
             PingStats stats;
-            var targetIpAddress = pingResponse.TargetIpAddress;
-            if (_stats.TryGetValue(targetIpAddress, out var found))
+            IPAddress targetIpAddress = pingResponse.TargetIpAddress;
+            if (_stats.TryGetValue(targetIpAddress, out PingStats found))
             {
                 stats = found;
             }
@@ -128,9 +131,9 @@ namespace Desktop
                 stats = new PingStats();
                 _stats.Add(targetIpAddress, stats);
             }
-            var isSuccess = _pingResponseUtil.IsSuccess(pingResponse.Status);
+            bool isSuccess = _pingResponseUtil.IsSuccess(pingResponse.Status);
             _pingStatsUtil.AddStatus(stats.StatusHistory, isSuccess);
-            var v = isSuccess ? 1.0 : 0.0;
+            double v = isSuccess ? 1.0 : 0.0;
             stats.Average25 = ((stats.Average25 * stats.Average25Count) + v) / (stats.Average25Count + 1);
             if (stats.Average25Count < 25)
             {
@@ -155,19 +158,6 @@ namespace Desktop
         private void Log(string message)
         {
             Debug.WriteLine(message);
-        }
-    }
-
-    public class PingStats : IPingStats
-    {
-        public IList<bool> StatusHistory { get; }
-        public double Average25 { get; set; }
-        public int Average25Count { get; set; }
-
-        IEnumerable<bool> IPingStats.StatusHistory => StatusHistory;
-        public PingStats()
-        {
-            StatusHistory = new List<bool>();
         }
     }
 }
