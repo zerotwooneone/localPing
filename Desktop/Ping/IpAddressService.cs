@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reactive.Subjects;
+using zh.LocalPingLib.Ping;
 
 namespace Desktop.Ping
 {

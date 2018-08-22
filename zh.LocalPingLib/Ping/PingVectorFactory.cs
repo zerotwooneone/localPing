@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using Desktop.Vector;
-using zh.LocalPingLib.Ping;
 
-namespace Desktop.Ping
+namespace zh.LocalPingLib.Ping
 {
     public class PingVectorFactory : IPingVectorFactory
     {
@@ -26,7 +24,7 @@ namespace Desktop.Ping
             var pingResponseValues = GetPingResponseValues(pingResponse, GetStatusDimension);
             var pingResponseValueX = GetPingResponseValuesX(pingResponse, GetAddressDimensions, r => GetStatsValue(r, stats), pr => GetRttDimension(pr.RoundTripTime));
             var dimensionValues = pingResponseValues.Concat(pingResponseValueX);
-            return new Vector.Vector(dimensionValues);
+            return new Desktop.Vector.Vector(dimensionValues);
         }
 
         private IEnumerable<IDimensionValue> GetRttDimension(TimeSpan roundTripTime)

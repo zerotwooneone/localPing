@@ -1,7 +1,6 @@
 ﻿using Desktop.Vector;
-using zh.LocalPingLib.Ping;
 
-namespace Desktop.Ping
+namespace zh.LocalPingLib.Ping
 {
     public interface IPingVectorFactory
     {

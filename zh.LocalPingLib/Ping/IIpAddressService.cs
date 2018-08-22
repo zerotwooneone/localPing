@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 
-namespace Desktop.Ping
+namespace zh.LocalPingLib.Ping
 {
     public interface IIpAddressService
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Desktop.Vector;
 
-namespace Desktop.Ping
+namespace zh.LocalPingLib.Ping
 {
     public class DimensionKeyFactory : IDimensionKeyFactory
     {

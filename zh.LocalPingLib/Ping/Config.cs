@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Desktop.Ping
+namespace zh.LocalPingLib.Ping
 {
     public class Config : IPingTimerConfig
     {

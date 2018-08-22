@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reactive.Linq;
 
-namespace Desktop.Ping
+namespace zh.LocalPingLib.Ping
 {
     public class PingTimer : IPingTimer
     {

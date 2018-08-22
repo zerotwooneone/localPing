@@ -1,6 +1,6 @@
 ﻿using Desktop.Vector;
 
-namespace Desktop.Ping
+namespace zh.LocalPingLib.Ping
 {
     public interface IDimensionKeyFactory
     {

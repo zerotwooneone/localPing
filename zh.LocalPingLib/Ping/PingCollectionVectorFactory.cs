@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using Desktop.Vector;
-using zh.LocalPingLib.Ping;
 
-namespace Desktop.Ping
+namespace zh.LocalPingLib.Ping
 {
     public class PingCollectionVectorFactory : IPingCollectionVectorFactory
     {
@@ -19,7 +15,7 @@ namespace Desktop.Ping
                 return vectorDimensionValues;
             });
             var dimensionValues = dimensionValueArrays.SelectMany(i => i);
-            return new Vector.Vector(dimensionValues);
+            return new Desktop.Vector.Vector(dimensionValues);
         }
     }
 }

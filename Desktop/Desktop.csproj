@@ -72,15 +72,10 @@
     <Compile Include="Dispatcher\DispatcherModule.cs" />
     <Compile Include="PingState.cs" />
     <Compile Include="Ping\IpAddressService.cs" />
+    <Compile Include="Ping\PingLibModule.cs" />
+    <Compile Include="Ping\PingModule.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Target\TargetDatamodel.cs" />
-    <Compile Include="Ping\DimensionKeyFactory.cs" />
-    <Compile Include="Ping\IDimensionKeyFactory.cs" />
-    <Compile Include="Ping\IIpAddressService.cs" />
-    <Compile Include="Ping\IPingCollectionVectorFactory.cs" />
-    <Compile Include="Ping\IPingVectorFactory.cs" />
-    <Compile Include="Ping\PingCollectionVectorFactory.cs" />
-    <Compile Include="Ping\PingVectorFactory.cs" />
     <Compile Include="Target\TargetView.xaml.cs">
       <DependentUpon>TargetView.xaml</DependentUpon>
     </Compile>
@@ -105,12 +100,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainWindowViewmodel.cs" />
-    <Compile Include="Ping\Config.cs" />
-    <Compile Include="Ping\IPingTimer.cs" />
-    <Compile Include="Ping\IPingTimerConfig.cs" />
-    <Compile Include="Ping\PingLibModule.cs" />
-    <Compile Include="Ping\PingModule.cs" />
-    <Compile Include="Ping\PingTimer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
