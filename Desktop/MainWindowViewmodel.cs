@@ -76,8 +76,8 @@ namespace Desktop
                             TargetDatamodel targetDatamodelX = pingState.TargetDatamodel;
                             targetDatamodelX.RoundTripTime = pingResponse.RoundTripTime;
                             targetDatamodelX.StatusSuccess = GetStatusSuccess(pingResponse.Status);
-                            var boring = PingVectorFactory.GetVectorInternal(new PingResponse(IPAddress.Loopback, TimeSpan.Zero, IPStatus.DestinationHostUnreachable, IPAddress.Loopback),
-                                new PingStats { Average25 = 0, Average25Count = 25, StatusHistory = new bool[PingStatsUtil.MaxHistoryCount] }, _pingResponseUtil, dimensionKeyFactory, _pingStatsUtil);
+                            var boring = _pingVectorFactory.GetVector(new PingResponse(IPAddress.Loopback, TimeSpan.Zero, IPStatus.DestinationHostUnreachable, IPAddress.Loopback),
+                                new PingStats { Average25 = 0, Average25Count = 25, StatusHistory = new bool[PingStatsUtil.MaxHistoryCount] });
                             double change = _vectorComparer.Compare(boring, pingVector);
                             targetDatamodelX.Change = change;
 
