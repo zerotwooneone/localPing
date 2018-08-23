@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Desktop.Vector
+namespace zh.Vector
 {
     public interface IVectorInputConversionService<T>
     {

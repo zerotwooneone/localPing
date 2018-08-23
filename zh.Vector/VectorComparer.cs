@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Desktop.Vector
+namespace zh.Vector
 {
     public class VectorComparer : IVectorComparer
     {
@@ -29,11 +29,6 @@ namespace Desktop.Vector
             {
                 const double v2Value = 0.0;
                 AddDimension(v1Value, v2Value, ref dotProduct, ref squaredV1Sum, ref squaredV2Sum);
-            }
-
-            if (dotProduct == 0)
-            {
-                return 0;
             }
 
             double v1Length = Math.Sqrt(squaredV1Sum);

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Desktop.Vector;
+using zh.Vector;
 
 namespace zh.LocalPingLib.Ping
 {
@@ -21,62 +21,46 @@ namespace zh.LocalPingLib.Ping
         }
         public IVector GetVector(IPingResponse pingResponse, IPingStats stats)
         {
-            var pingResponseValues = GetPingResponseValues(pingResponse, GetStatusDimension);
-            var pingResponseValueX = GetPingResponseValuesX(pingResponse, GetAddressDimensions, r => GetStatsValue(r, stats), pr => GetRttDimension(pr.RoundTripTime));
-            var dimensionValues = pingResponseValues.Concat(pingResponseValueX);
-            return new Desktop.Vector.Vector(dimensionValues);
+            //var pingResponseValues = GetPingResponseValues(pingResponse, GetStatusDimension);
+            var pingResponseValueX = GetPingResponseValuesX(pingResponse,  r => GetStatsValue(r, stats)); //GetAddressDimensions,, pr => GetRttDimension(pr.RoundTripTime)
+            var dimensionValues = pingResponseValueX;
+            return new Vector.Vector(dimensionValues);
         }
 
-        private IEnumerable<IDimensionValue> GetRttDimension(TimeSpan roundTripTime)
-        {
-            var rtt = Hash(roundTripTime.TotalMilliseconds);
-            var rttValueDimensionName = _dimensionKeyFactory.GetOrCreate($"Round Trip Time {roundTripTime.ToString()}");
-            return new[]
-            {
-                new DimensionValue(rttValueDimensionName, rtt),
-            };
-        }
+        //private IEnumerable<IDimensionValue> GetRttDimension(TimeSpan roundTripTime)
+        //{
+        //    var rtt = Hash(roundTripTime.TotalMilliseconds);
+        //    var rttValueDimensionName = _dimensionKeyFactory.GetOrCreate($"Round Trip Time {roundTripTime.ToString()}");
+        //    return new[]
+        //    {
+        //        new DimensionValue(rttValueDimensionName, rtt),
+        //    };
+        //}
 
         private IEnumerable<IDimensionValue> GetStatsValue(IPingResponse pingResponse, IPingStats stats)
         {
-            var statsObj = _pingStatsUtil.GetAverageSuccessRate(stats.StatusHistory);
+            //var statsObj = _pingStatsUtil.GetAverageSuccessRate(stats.StatusHistory);
 
-            var success = _pingResponseUtil.IsSuccess(pingResponse.Status);
-            var successVal = success ? 1.0 : 0;
+            //var success = _pingResponseUtil.IsSuccess(pingResponse.Status);
+            //var successVal = success ? 1.0 : 0;
 
-            var aboveAverage = successVal > statsObj.Average;
-            var greaterThanAverage = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Above Average"), aboveAverage ? Hash(true) : 0);
-            //var lessThanAverage = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Below Average"), !aboveAverage ? Hash(true):0);
+            //var aboveAverage = successVal > statsObj.Average;
+            //var greaterThanAverage = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Above Average"), aboveAverage ? Hash(true) : 0);
+            
+            //var halfStdDev = statsObj.StdDev / 2;
+            //var avgPlusHalf = statsObj.Average + halfStdDev;
+            //var aboveAvgPlusHalf = successVal > avgPlusHalf;
 
-            var halfStdDev = statsObj.StdDev / 2;
-            var avgPlusHalf = statsObj.Average + halfStdDev;
-            var aboveAvgPlusHalf = successVal > avgPlusHalf;
+            //var greaterThanAveragePlusHalf = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Above Average Plus Half Std Dev"), aboveAvgPlusHalf ? Hash(true) : 0);
+            
+            //var avgMinusHalf = statsObj.Average - halfStdDev;
+            //var aboveAvgMinusHalf = successVal > avgMinusHalf;
 
-            var greaterThanAveragePlusHalf = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Above Average Plus Half Std Dev"), aboveAvgPlusHalf ? Hash(true) : 0);
-            //var lessThanAveragePlusHalf = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Below Average Plus Half Std Dev"), !aboveAvgPlusHalf ? Hash(true):0);
+            //var greaterThanAverageMinusHalf = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Above Average Minus Half Std Dev"), aboveAvgMinusHalf ? Hash(true) : 0);
 
-            var avgMinusHalf = statsObj.Average - halfStdDev;
-            var aboveAvgMinusHalf = successVal > avgMinusHalf;
-
-            var greaterThanAverageMinusHalf = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Above Average Minus Half Std Dev"), aboveAvgMinusHalf ? Hash(true) : 0);
-            //var lessThanAverageMinusHalf = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Below Average Minus Half Std Dev"), !aboveAvgMinusHalf ? Hash(true):0);
-
-            //var averageSuccessRate = Hash(statsObj.Average);
-            //var scopedAverageDimensionName = _dimensionKeyFactory.GetOrCreate($"Average Success Rate {averageSuccessRate}");
-            //var avg25ValueName = _dimensionKeyFactory.GetOrCreate($"Average 25 {stats.Average25}");
-            //var avg25Value = Hash(stats.Average25) * 1000;
             var nullableStatus = stats.StatusHistory.Cast<bool?>();
             var statusHistoryDimensionValues = GetStatusHistoryDimensionValues(nullableStatus);
-            return new[] {
-                //new DimensionValue(scopedAverageDimensionName, averageSuccessRate),
-                //new DimensionValue(avg25ValueName, avg25Value)
-                greaterThanAverage,
-                //lessThanAverage,
-                greaterThanAverageMinusHalf,
-                greaterThanAveragePlusHalf,
-                //lessThanAverageMinusHalf,
-                //lessThanAveragePlusHalf
-            }.Concat(statusHistoryDimensionValues);
+            return statusHistoryDimensionValues;
         }
 
         private IEnumerable<IDimensionValue> GetStatusHistoryDimensionValues(
@@ -86,48 +70,18 @@ namespace zh.LocalPingLib.Ping
                 .Select(nb => nb ?? true);
             var successes = statusSuccesses as bool[] ?? statusSuccesses.ToArray();
             var successCount = successes.Count(b => b);
-            //var failureCount = successes.Count(b => !b);
-            var successPct = successCount / successes.Length;
-            var failurePct = 1 - successPct;
-            successPct *= 100;
-            failurePct *= 100;
-            var pctDims = Enumerable.Range(1, 9).Select(i =>
+            var failureCount = successes.Count(b => !b);
+            //var successPct = successCount / successes.Length;
+            //var failurePct = 1 - successPct;
+            //successPct *= 100;
+            //failurePct *= 100;
+            var is100PercentSuccess = Hash(successCount == successes.Length);
+            var is100PercentFailure = Hash(failureCount == successes.Length);
+            return new[]
             {
-                var pct = i * 10;
-                bool isGreaterThanSuccessPct = successPct > pct;
-                bool isGreaterThanFailurePct = failurePct > pct;
-                return new[]
-                {
-
-                    new DimensionValue(_dimensionKeyFactory.GetOrCreate($"Greater than {pct}% success"),
-                        isGreaterThanSuccessPct ? Hash(true) : 0),
-                    //new DimensionValue(_dimensionKeyFactory.GetOrCreate($"Less than {pct}% success"), !isGreaterThanPct ? Hash(true):0)
-                    new DimensionValue(_dimensionKeyFactory.GetOrCreate($"Greater than {pct}% failure"),
-                        isGreaterThanFailurePct ? Hash(true) : 0),
-                };
-            }).SelectMany(i => i);
-            //var successDims = Enumerable.Range(0, successCount).Select(i =>
-            //{
-            //    var n = _dimensionKeyFactory.GetOrCreate($"Has {i} successes");
-            //    return new DimensionValue(n, Hash(i));
-            //});
-            //var failureDims = Enumerable.Range(0, failureCount).Select(i =>
-            //{
-            //    var n = _dimensionKeyFactory.GetOrCreate($"Has {i} failures");
-            //    return new DimensionValue(n, Hash(i));
-            //});
-            return successes
-                .SelectMany((b, i) => StatusHistoryDimensionValues(i, b))
-                //.Concat(
-                //    new[]
-                //    {
-                //        new DimensionValue(_dimensionKeyFactory.GetOrCreate($"Success Count {successCount}"), Hash(successCount)),
-                //        new DimensionValue(_dimensionKeyFactory.GetOrCreate($"Failure Count {failureCount}"), Hash(failureCount)),
-                //    }
-                //    )
-                //.Concat(successDims)
-                //.Concat(failureDims)
-                .Concat(pctDims);
+                new DimensionValue(_dimensionKeyFactory.GetOrCreate("is100PercentSuccess"), is100PercentSuccess),
+                new DimensionValue(_dimensionKeyFactory.GetOrCreate("is100PercentFailure"), is100PercentFailure),
+            };
         }
 
         private IEnumerable<IDimensionValue> StatusHistoryDimensionValues(int index, bool lastStatus)

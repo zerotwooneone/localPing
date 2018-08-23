@@ -1,5 +1,5 @@
 ﻿using Desktop.Target;
-using Desktop.Vector;
+using zh.Vector;
 
 namespace Desktop
 {

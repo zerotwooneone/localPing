@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using Desktop.Vector;
 using Ninject.Modules;
 using zh.LocalPingLib.Ping;
+using zh.Vector;
 
 namespace Desktop.Ping
 {

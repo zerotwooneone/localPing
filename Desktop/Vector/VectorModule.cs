@@ -1,5 +1,5 @@
-﻿using Desktop.Vector;
-using Ninject.Modules;
+﻿using Ninject.Modules;
+using zh.Vector;
 
 namespace Desktop.Ping
 {

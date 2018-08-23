@@ -1,4 +1,4 @@
-﻿namespace Desktop.Vector
+﻿namespace zh.Vector
 {
     public interface IDimensionValue
     {

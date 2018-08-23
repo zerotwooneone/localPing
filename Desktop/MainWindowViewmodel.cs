@@ -1,6 +1,5 @@
 ﻿using Desktop.Dispatcher;
 using Desktop.Target;
-using Desktop.Vector;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,6 +12,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using zh.LocalPingLib.Ping;
+using zh.Vector;
 
 namespace Desktop
 {

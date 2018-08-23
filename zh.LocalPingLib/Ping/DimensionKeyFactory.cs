@@ -1,6 +1,6 @@
-﻿using Desktop.Vector;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using zh.Vector;
 
 namespace zh.LocalPingLib.Ping
 {

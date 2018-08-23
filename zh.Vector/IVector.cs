@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Desktop.Vector
+namespace zh.Vector
 {
     public interface IVector
     {

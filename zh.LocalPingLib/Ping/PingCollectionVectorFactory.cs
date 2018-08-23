@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Desktop.Vector;
+using zh.Vector;
 
 namespace zh.LocalPingLib.Ping
 {
@@ -15,7 +15,7 @@ namespace zh.LocalPingLib.Ping
                 return vectorDimensionValues;
             });
             var dimensionValues = dimensionValueArrays.SelectMany(i => i);
-            return new Desktop.Vector.Vector(dimensionValues);
+            return new Vector.Vector(dimensionValues);
         }
     }
 }
