@@ -9,9 +9,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Desktop", "Desktop\Desktop.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "zh.LocalPingLib", "zh.LocalPingLib\zh.LocalPingLib.csproj", "{E1226B67-B1A3-49A9-AF50-8C6FAD617984}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zh.Vector", "zh.Vector\zh.Vector.csproj", "{B38C36B4-47C2-4D9F-A598-5662CBAC93C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "zh.Vector", "zh.Vector\zh.Vector.csproj", "{B38C36B4-47C2-4D9F-A598-5662CBAC93C0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VectorTests", "VectorTests\VectorTests.csproj", "{B0C87D85-8615-4D6E-B743-9EF907154E4C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalPingLibTests2", "LocalPingLibTests2\LocalPingLibTests2.csproj", "{B7D88FDD-C1A4-49BE-AB50-039BB475B6C4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{B0C87D85-8615-4D6E-B743-9EF907154E4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0C87D85-8615-4D6E-B743-9EF907154E4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0C87D85-8615-4D6E-B743-9EF907154E4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7D88FDD-C1A4-49BE-AB50-039BB475B6C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7D88FDD-C1A4-49BE-AB50-039BB475B6C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7D88FDD-C1A4-49BE-AB50-039BB475B6C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7D88FDD-C1A4-49BE-AB50-039BB475B6C4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

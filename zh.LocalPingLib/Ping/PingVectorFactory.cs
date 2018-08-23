@@ -22,8 +22,8 @@ namespace zh.LocalPingLib.Ping
         public IVector GetVector(IPingResponse pingResponse, IPingStats stats)
         {
             //var pingResponseValues = GetPingResponseValues(pingResponse, GetStatusDimension);
-            var pingResponseValueX = GetPingResponseValuesX(pingResponse,  r => GetStatsValue(r, stats)); //GetAddressDimensions,, pr => GetRttDimension(pr.RoundTripTime)
-            var dimensionValues = pingResponseValueX;
+            IEnumerable<IDimensionValue> pingResponseValueX = GetPingResponseValuesX(pingResponse, r => GetStatsValue(r, stats)); //GetAddressDimensions,, pr => GetRttDimension(pr.RoundTripTime)
+            IEnumerable<IDimensionValue> dimensionValues = pingResponseValueX;
             return new Vector.Vector(dimensionValues);
         }
 
@@ -46,60 +46,60 @@ namespace zh.LocalPingLib.Ping
 
             //var aboveAverage = successVal > statsObj.Average;
             //var greaterThanAverage = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Above Average"), aboveAverage ? Hash(true) : 0);
-            
+
             //var halfStdDev = statsObj.StdDev / 2;
             //var avgPlusHalf = statsObj.Average + halfStdDev;
             //var aboveAvgPlusHalf = successVal > avgPlusHalf;
 
             //var greaterThanAveragePlusHalf = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Above Average Plus Half Std Dev"), aboveAvgPlusHalf ? Hash(true) : 0);
-            
+
             //var avgMinusHalf = statsObj.Average - halfStdDev;
             //var aboveAvgMinusHalf = successVal > avgMinusHalf;
 
             //var greaterThanAverageMinusHalf = new DimensionValue(_dimensionKeyFactory.GetOrCreate("Above Average Minus Half Std Dev"), aboveAvgMinusHalf ? Hash(true) : 0);
 
-            var nullableStatus = stats.StatusHistory.Cast<bool?>();
-            var statusHistoryDimensionValues = GetStatusHistoryDimensionValues(nullableStatus);
+            IEnumerable<bool?> nullableStatus = stats.StatusHistory.Cast<bool?>();
+            IEnumerable<IDimensionValue> statusHistoryDimensionValues = GetStatusHistoryDimensionValues(nullableStatus);
             return statusHistoryDimensionValues;
         }
 
         private IEnumerable<IDimensionValue> GetStatusHistoryDimensionValues(
             IEnumerable<bool?> nullableStatus)
         {
-            var statusSuccesses = nullableStatus
+            IEnumerable<bool> statusSuccesses = nullableStatus
                 .Select(nb => nb ?? true);
-            var successes = statusSuccesses as bool[] ?? statusSuccesses.ToArray();
-            var successCount = successes.Count(b => b);
-            var failureCount = successes.Count(b => !b);
+            bool[] successes = statusSuccesses as bool[] ?? statusSuccesses.ToArray();
+            int successCount = successes.Count(b => b);
+            int failureCount = successes.Count(b => !b);
             //var successPct = successCount / successes.Length;
             //var failurePct = 1 - successPct;
             //successPct *= 100;
             //failurePct *= 100;
-            var is100PercentSuccess = Hash(successCount == successes.Length);
-            var is100PercentFailure = Hash(failureCount == successes.Length);
+            double allSuccessOrFailure = Hash(successCount == successes.Length || failureCount == successes.Length);
+            double has1SuccessOrFailure = Hash(successCount==1 || failureCount==1);
             return new[]
             {
-                new DimensionValue(_dimensionKeyFactory.GetOrCreate("is100PercentSuccess"), is100PercentSuccess),
-                new DimensionValue(_dimensionKeyFactory.GetOrCreate("is100PercentFailure"), is100PercentFailure),
+                new DimensionValue(_dimensionKeyFactory.GetOrCreate(DimensionNames.Is100PercentSuccessOrFailure), allSuccessOrFailure),
+                new DimensionValue(_dimensionKeyFactory.GetOrCreate(DimensionNames.Has1SuccessOrFailure), has1SuccessOrFailure),
             };
         }
 
         private IEnumerable<IDimensionValue> StatusHistoryDimensionValues(int index, bool lastStatus)
         {
-            var lastSuccess = Hash(lastStatus);
-            var lastSuccessDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Success {index} {lastSuccess}");
-            var lsDimensionValue = new DimensionValue(lastSuccessDimensionName, Hash(lastSuccess));
-            var lastFailure = Hash(!lastStatus);
-            var lastFailureDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Failure {index} {lastFailure}");
-            var lfDimensionValue = new DimensionValue(lastFailureDimensionName, Hash(lastFailure));
+            double lastSuccess = Hash(lastStatus);
+            IDimensionKey lastSuccessDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Success {index} {lastSuccess}");
+            DimensionValue lsDimensionValue = new DimensionValue(lastSuccessDimensionName, Hash(lastSuccess));
+            double lastFailure = Hash(!lastStatus);
+            IDimensionKey lastFailureDimensionName = _dimensionKeyFactory.GetOrCreate($"Last Failure {index} {lastFailure}");
+            DimensionValue lfDimensionValue = new DimensionValue(lastFailureDimensionName, Hash(lastFailure));
             return new[] { lsDimensionValue, lfDimensionValue };
         }
 
         private double Hash(DateTime timeStamp)
         {
-            var diff = DateTime.Now - timeStamp;
-            var longValue = diff.Ticks;
-            var doubleValue = (double)longValue;
+            TimeSpan diff = DateTime.Now - timeStamp;
+            long longValue = diff.Ticks;
+            double doubleValue = (double)longValue;
             return Hash(doubleValue);
         }
 
@@ -117,20 +117,20 @@ namespace zh.LocalPingLib.Ping
 
         private DimensionValue GetStatusDimension(IPingResponse pingResponse)
         {
-            var isSuccess = _pingResponseUtil.IsSuccess(pingResponse.Status);
-            var statusFlagValue = Hash(isSuccess);
-            var dimensionKey = _dimensionKeyFactory.GetOrCreate($"status flag {isSuccess}");
-            var statusDimensionValue = new DimensionValue(dimensionKey, statusFlagValue);
+            bool isSuccess = _pingResponseUtil.IsSuccess(pingResponse.Status);
+            double statusFlagValue = Hash(isSuccess);
+            IDimensionKey dimensionKey = _dimensionKeyFactory.GetOrCreate($"status flag {isSuccess}");
+            DimensionValue statusDimensionValue = new DimensionValue(dimensionKey, statusFlagValue);
             return statusDimensionValue;
         }
 
         private IEnumerable<IDimensionValue> GetAddressDimensions(IPingResponse pingResponse)
         {
-            var intValue = pingResponse.TargetIpAddress.GetHashCode();
-            var ipValue = Hash(intValue);
+            int intValue = pingResponse.TargetIpAddress.GetHashCode();
+            double ipValue = Hash(intValue);
 
-            var ipDimensionKey = _dimensionKeyFactory.GetOrCreate($"Ip Address {pingResponse.TargetIpAddress}");
-            var ipSpecDimensionValue = new DimensionValue(ipDimensionKey, ipValue);
+            IDimensionKey ipDimensionKey = _dimensionKeyFactory.GetOrCreate($"Ip Address {pingResponse.TargetIpAddress}");
+            DimensionValue ipSpecDimensionValue = new DimensionValue(ipDimensionKey, ipValue);
 
             return new[]
             {
@@ -138,21 +138,36 @@ namespace zh.LocalPingLib.Ping
             };
         }
         private const double Modulus = 1000;
-        private double Hash(int value)
+        public static double Hash(int value)
         {
-            return ((value + 7.0) * 13) % Modulus; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
+            if (value >= 0)
+            {
+                return ((value + 7.0) * 13) % Modulus; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
+            }
+            else
+            {
+                return ((value - 7.0) * 13) % Modulus; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
+            }
         }
 
-        private double Hash(double value)
+        public static double Hash(double value)
         {
-            return ((value + 7.0) * 13) % Modulus; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
+            if (value >= 0)
+            {
+                return ((value + 7.0) * 13) % Modulus; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
+            }
+            else
+            {
+                return ((value - 7.0) * 13) % Modulus; //add and mult by prime numbers to avoid zero values and to space out consecutive integers
+            }
+
         }
 
-        private double Hash(bool value)
+        public static double Hash(bool value)
         {
             const double success = (1.0 + 7) * 13;
-            const double failure = (0.0 + 7) * 13;
-            var result = value ? success : failure;
+            const double failure = (-1.0 - 7) * 13;
+            double result = value ? success : failure;
             return result;
         }
     }
