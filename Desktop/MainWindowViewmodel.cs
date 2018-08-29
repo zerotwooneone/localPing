@@ -25,7 +25,6 @@ namespace Desktop
         private readonly IVectorComparer _vectorComparer;
         private readonly PingStatsUtil _pingStatsUtil;
         private readonly IPingResponseUtil _pingResponseUtil;
-        private IVector _previousVector;
 
         public ObservableCollection<TargetDatamodel> TargetDatamodels { get; }
         private readonly IDictionary<IPAddress, PingState> _targetDatamodels;
@@ -41,8 +40,7 @@ namespace Desktop
             IIpAddressService ipAddressService,
             IDispatcherAccessor dispatcherAccessor,
             PingStatsUtil pingStatsUtil,
-            IPingResponseUtil pingResponseUtil,
-            IDimensionKeyFactory dimensionKeyFactory)
+            IPingResponseUtil pingResponseUtil)
         {
             _pingTimer = pingTimer;
             _pingService = pingService;
@@ -104,8 +102,6 @@ namespace Desktop
 
                         return pingVector;
                     }).ToArray();
-                    IVector currentVector = _pingCollectionVectorFactory.GetVector(vectors);
-                    _previousVector = currentVector;
                     resortSubject.OnNext(0);
                 });
             });

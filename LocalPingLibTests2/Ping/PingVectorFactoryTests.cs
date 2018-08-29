@@ -15,8 +15,6 @@ namespace LocalPingLibTests2.Ping
         private MockRepository mockRepository;
 
         private static readonly IDimensionKeyFactory DimensionKeyFactory = new DimensionKeyFactory();
-        private Mock<IPingResponseUtil> mockPingResponseUtil;
-        private Mock<PingStatsUtil> mockPingStatsUtil;
         private static readonly IVectorComparer VectorComparer = new VectorComparer();
         private const double EighthPi = Math.PI / 8;
         private const double HundredthPi = Math.PI / 100;
@@ -42,9 +40,6 @@ namespace LocalPingLibTests2.Ping
         public void TestInitialize()
         {
             this.mockRepository = new MockRepository(MockBehavior.Strict);
-
-            this.mockPingResponseUtil = this.mockRepository.Create<IPingResponseUtil>();
-            this.mockPingStatsUtil = this.mockRepository.Create<PingStatsUtil>();
         }
 
         [TestCleanup]
@@ -56,9 +51,7 @@ namespace LocalPingLibTests2.Ping
         private PingVectorFactory CreateFactory()
         {
             return new PingVectorFactory(
-                DimensionKeyFactory,
-                this.mockPingResponseUtil.Object,
-                this.mockPingStatsUtil.Object);
+                DimensionKeyFactory);
         }
 
         [TestMethod]
