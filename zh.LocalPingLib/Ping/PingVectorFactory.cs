@@ -60,7 +60,57 @@ namespace zh.LocalPingLib.Ping
 
             IEnumerable<bool?> nullableStatus = stats.StatusHistory.Cast<bool?>();
             IEnumerable<IDimensionValue> statusHistoryDimensionValues = GetStatusHistoryDimensionValues(nullableStatus);
-            return statusHistoryDimensionValues;
+
+            DateTime? statsLastSuccess = stats.LastSuccess;
+            DateTime? statsLastFailure = stats.LastFailure;
+
+            IEnumerable<IDimensionValue> lastDims = LastDimensions(statsLastSuccess, statsLastFailure);
+
+            return statusHistoryDimensionValues.Concat(lastDims);
+        }
+
+        private IEnumerable<IDimensionValue> LastDimensions(DateTime? statsLastSuccess, DateTime? statsLastFailure)
+        {
+            TimeSpan fiveMinutes = TimeSpan.FromMinutes(5);
+            TimeSpan oneMinute = TimeSpan.FromMinutes(1);
+            
+            var last5Dim = LastDimensions(statsLastSuccess, statsLastFailure, fiveMinutes, DimensionNames.FiveMinuteDeltaSinceLastSuccessOrFailure);
+            var last1Dim = LastDimensions(statsLastSuccess, statsLastFailure, oneMinute, DimensionNames.OneMinuteDeltaSinceLastSuccessOrFailure);
+            var lastDims = new IDimensionValue[]
+            {
+                last5Dim,
+                last1Dim
+            };
+            return lastDims;
+        }
+
+        private DimensionValue LastDimensions(DateTime? statsLastSuccess, DateTime? statsLastFailure, TimeSpan fiveMinutes,
+            string dimensionName)
+        {
+            DateTime? lastSuccessIn5Min = statsLastSuccess.HasValue && (DateTime.Now - statsLastSuccess) < fiveMinutes
+                ? statsLastSuccess
+                : null;
+
+            DateTime? lastFailureIn5Min = statsLastFailure.HasValue && (DateTime.Now - statsLastFailure) < fiveMinutes
+                ? statsLastFailure
+                : null;
+            double last5Value;
+            if (lastSuccessIn5Min.HasValue && lastFailureIn5Min.HasValue)
+            {
+                last5Value = 0.0; //(lastSuccessIn5Min.Value - lastFailureIn5Min.Value).Ticks;
+            }
+            else
+            {
+                last5Value = 1000;
+            }
+
+            double fiveMinuteDeltaSinceLastSuccessOrFailure = Hash(last5Value);
+
+            DimensionValue last5Dim =
+                new DimensionValue(
+                    _dimensionKeyFactory.GetOrCreate(dimensionName),
+                    fiveMinuteDeltaSinceLastSuccessOrFailure);
+            return last5Dim;
         }
 
         private IEnumerable<IDimensionValue> GetStatusHistoryDimensionValues(
@@ -76,7 +126,8 @@ namespace zh.LocalPingLib.Ping
             //successPct *= 100;
             //failurePct *= 100;
             double allSuccessOrFailure = Hash(successCount == successes.Length || failureCount == successes.Length);
-            double has1SuccessOrFailure = Hash(successCount==1 || failureCount==1);
+            double has1SuccessOrFailure = Hash(successCount == 1 || failureCount == 1);
+
             return new[]
             {
                 new DimensionValue(_dimensionKeyFactory.GetOrCreate(DimensionNames.Is100PercentSuccessOrFailure), allSuccessOrFailure),
@@ -152,6 +203,14 @@ namespace zh.LocalPingLib.Ping
 
         public static double Hash(double value)
         {
+            //if (double.IsPositiveInfinity(value))
+            //{
+            //    return Double.PositiveInfinity;
+            //}
+            //if (double.IsNegativeInfinity(value))
+            //{
+            //    return Double.NegativeInfinity;
+            //}
             if (value >= 0)
             {
                 return ((value + 7.0) * 13) % Modulus; //add and mult by prime numbers to avoid zero values and to space out consecutive integers

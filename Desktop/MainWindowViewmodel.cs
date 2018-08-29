@@ -76,8 +76,8 @@ namespace Desktop
                             TargetDatamodel targetDatamodelX = pingState.TargetDatamodel;
                             targetDatamodelX.RoundTripTime = pingResponse.RoundTripTime;
                             targetDatamodelX.StatusSuccess = GetStatusSuccess(pingResponse.Status);
-                            var boring = _pingVectorFactory.GetVector(new PingResponse(IPAddress.Loopback, TimeSpan.Zero, IPStatus.DestinationHostUnreachable, IPAddress.Loopback),
-                                new PingStats { Average25 = 0, Average25Count = 25, StatusHistory = new bool[PingStatsUtil.MaxHistoryCount] });
+                            IVector boring = _pingVectorFactory.GetVector(new PingResponse(IPAddress.Loopback, TimeSpan.Zero, IPStatus.DestinationHostUnreachable, IPAddress.Loopback),
+                                new PingStats(DateTime.Now.AddDays(-1), DateTime.Now) { Average25 = 0, Average25Count = 25, StatusHistory = new bool[PingStatsUtil.MaxHistoryCount] });
                             double change = _vectorComparer.Compare(boring, pingVector);
                             targetDatamodelX.Change = change;
 
@@ -105,11 +105,6 @@ namespace Desktop
                         return pingVector;
                     }).ToArray();
                     IVector currentVector = _pingCollectionVectorFactory.GetVector(vectors);
-                    if (_previousVector != null)
-                    {
-                        //Log($"diff:{_vectorComparer.Compare(_previousVector, currentVector)}");
-                    }
-
                     _previousVector = currentVector;
                     resortSubject.OnNext(0);
                 });
@@ -122,16 +117,19 @@ namespace Desktop
         {
             PingStats stats;
             IPAddress targetIpAddress = pingResponse.TargetIpAddress;
+            bool isSuccess = _pingResponseUtil.IsSuccess(pingResponse.Status);
             if (_stats.TryGetValue(targetIpAddress, out PingStats found))
             {
                 stats = found;
             }
             else
             {
-                stats = new PingStats();
+                DateTime? lastSuccess = isSuccess ? DateTime.Now : (DateTime?)null;
+                DateTime? lastFailure = !isSuccess ? DateTime.Now : (DateTime?)null;
+                stats = new PingStats(lastSuccess, lastFailure);
                 _stats.Add(targetIpAddress, stats);
             }
-            bool isSuccess = _pingResponseUtil.IsSuccess(pingResponse.Status);
+
             _pingStatsUtil.AddStatus(stats.StatusHistory, isSuccess);
             double v = isSuccess ? 1.0 : 0.0;
             stats.Average25 = ((stats.Average25 * stats.Average25Count) + v) / (stats.Average25Count + 1);

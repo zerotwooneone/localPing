@@ -18,17 +18,24 @@ namespace LocalPingLibTests2.Ping
         private Mock<IPingResponseUtil> mockPingResponseUtil;
         private Mock<PingStatsUtil> mockPingStatsUtil;
         private static readonly IVectorComparer VectorComparer = new VectorComparer();
+        private const double EighthPi = Math.PI / 8;
+        private const double HundredthPi = Math.PI / 100;
+        private const double HalfPi = Math.PI / 2;
 
         private static readonly IVector Boring = new Vector(new[]
         {
             new DimensionValue(DimensionKeyFactory.GetOrCreate(DimensionNames.Is100PercentSuccessOrFailure), PingVectorFactory.Hash(true)),
             new DimensionValue(DimensionKeyFactory.GetOrCreate(DimensionNames.Has1SuccessOrFailure), PingVectorFactory.Hash(false)),
+            new DimensionValue(DimensionKeyFactory.GetOrCreate(DimensionNames.FiveMinuteDeltaSinceLastSuccessOrFailure), PingVectorFactory.Hash(1000)),
+            new DimensionValue(DimensionKeyFactory.GetOrCreate(DimensionNames.OneMinuteDeltaSinceLastSuccessOrFailure), PingVectorFactory.Hash(1000)),
         });
 
         private static readonly IVector Interesting = new Vector(new[]
         {
             new DimensionValue(DimensionKeyFactory.GetOrCreate(DimensionNames.Is100PercentSuccessOrFailure), PingVectorFactory.Hash(false)),
             new DimensionValue(DimensionKeyFactory.GetOrCreate(DimensionNames.Has1SuccessOrFailure), PingVectorFactory.Hash(true)),
+            new DimensionValue(DimensionKeyFactory.GetOrCreate(DimensionNames.FiveMinuteDeltaSinceLastSuccessOrFailure), PingVectorFactory.Hash(0.0)),
+            new DimensionValue(DimensionKeyFactory.GetOrCreate(DimensionNames.OneMinuteDeltaSinceLastSuccessOrFailure), PingVectorFactory.Hash(0.0)),
         });
 
         [TestInitialize]
@@ -60,7 +67,7 @@ namespace LocalPingLibTests2.Ping
             // Arrange
             PingVectorFactory unitUnderTest = CreateFactory();
             IPingResponse pingResponse = new PingResponse(IPAddress.Loopback, TimeSpan.Zero, IPStatus.Success, IPAddress.Loopback);
-            IPingStats stats = new PingStats() { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => false).ToList() };
+            IPingStats stats = new PingStats(null, DateTime.Now) { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => false).ToList() };
 
             // Act
             IVector actual = unitUnderTest.GetVector(
@@ -69,7 +76,7 @@ namespace LocalPingLibTests2.Ping
 
             // Assert
             IVector expected = Boring;
-            VectorComparer.AssertAreEqual(expected, actual);
+            VectorComparer.AssertAreEqual(expected, actual, HundredthPi);
         }
 
         [TestMethod]
@@ -78,7 +85,7 @@ namespace LocalPingLibTests2.Ping
             // Arrange
             PingVectorFactory unitUnderTest = CreateFactory();
             IPingResponse pingResponse = new PingResponse(IPAddress.Loopback, TimeSpan.Zero, IPStatus.Success, IPAddress.Loopback);
-            IPingStats stats = new PingStats() { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => true).ToList() };
+            IPingStats stats = new PingStats(DateTime.Now, null) { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => true).ToList() };
 
             // Act
             IVector actual = unitUnderTest.GetVector(
@@ -87,7 +94,7 @@ namespace LocalPingLibTests2.Ping
 
             // Assert
             IVector expected = Boring;
-            VectorComparer.AssertAreEqual(expected, actual);
+            VectorComparer.AssertAreEqual(expected, actual, HundredthPi);
         }
 
         [TestMethod]
@@ -96,7 +103,7 @@ namespace LocalPingLibTests2.Ping
             // Arrange
             PingVectorFactory unitUnderTest = CreateFactory();
             IPingResponse pingResponse = new PingResponse(IPAddress.Loopback, TimeSpan.Zero, IPStatus.Success, IPAddress.Loopback);
-            IPingStats stats = new PingStats() { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => true).Append(false).ToList() };
+            IPingStats stats = new PingStats(null, DateTime.Now) { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => true).Append(false).ToList() };
 
             // Act
             IVector actual = unitUnderTest.GetVector(
@@ -105,7 +112,7 @@ namespace LocalPingLibTests2.Ping
 
             // Assert
             IVector expected = Boring;
-            VectorComparer.AssertAreNotEqual(expected, actual);
+            VectorComparer.AssertAreNotEqual(expected, actual, HalfPi);
         }
 
         [TestMethod]
@@ -114,7 +121,7 @@ namespace LocalPingLibTests2.Ping
             // Arrange
             PingVectorFactory unitUnderTest = CreateFactory();
             IPingResponse pingResponse = new PingResponse(IPAddress.Loopback, TimeSpan.Zero, IPStatus.Success, IPAddress.Loopback);
-            IPingStats stats = new PingStats() { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => false).Append(true).ToList() };
+            IPingStats stats = new PingStats(DateTime.Now, null) { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => false).Append(true).ToList() };
 
             // Act
             IVector actual = unitUnderTest.GetVector(
@@ -123,10 +130,10 @@ namespace LocalPingLibTests2.Ping
 
             // Assert
             IVector expected = Boring;
-            VectorComparer.AssertAreNotEqual(expected, actual);
+            VectorComparer.AssertAreNotEqual(expected, actual, HalfPi);
         }
 
-        private const double EighthPi = Math.PI / 8;
+
 
         [TestMethod]
         public void GetVector_1Failure_CloseToInteresting()
@@ -134,7 +141,7 @@ namespace LocalPingLibTests2.Ping
             // Arrange
             PingVectorFactory unitUnderTest = CreateFactory();
             IPingResponse pingResponse = new PingResponse(IPAddress.Loopback, TimeSpan.Zero, IPStatus.Success, IPAddress.Loopback);
-            IPingStats stats = new PingStats() { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => true).Append(false).ToList() };
+            IPingStats stats = new PingStats(null, DateTime.Now) { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => true).Append(false).ToList() };
 
             // Act
             IVector actual = unitUnderTest.GetVector(
@@ -145,14 +152,14 @@ namespace LocalPingLibTests2.Ping
             IVector expected = Interesting;
             VectorComparer.AssertAreEqual(expected, actual, EighthPi);
         }
-        
+
         [TestMethod]
         public void GetVector_1Success_CloseToInteresting()
         {
             // Arrange
             PingVectorFactory unitUnderTest = CreateFactory();
             IPingResponse pingResponse = new PingResponse(IPAddress.Loopback, TimeSpan.Zero, IPStatus.Success, IPAddress.Loopback);
-            IPingStats stats = new PingStats() { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => false).Append(true).ToList() };
+            IPingStats stats = new PingStats(DateTime.Now, null) { Average25 = 0, Average25Count = 0, StatusHistory = Enumerable.Range(1, PingStatsUtil.MaxHistoryCount).Select(i => false).Append(true).ToList() };
 
             // Act
             IVector actual = unitUnderTest.GetVector(
